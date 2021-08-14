@@ -18,7 +18,10 @@ switches:
     states: [ 中文, 🔤 ]
   - name: full_shape
     reset: 0
-    states: [ ．，, 。， ]
+    states: [ 半角, 全角 ]
+  - name: ascii_punct
+    reset: 1
+    states: [ 。，, ．， ]
   - name: zh_simp
     reset: 1
     states: [ 繁體, 简体 ]

@@ -12,7 +12,7 @@ switcher:
   hotkeys:
     - Control+grave
     - Control+Shift+grave
-    - F4
+#   - F4
   save_options:
     - full_shape
     - ascii_punct
