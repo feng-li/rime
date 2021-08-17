@@ -20,14 +20,14 @@ switches:
     reset: 0
     states: [ 半角, 全角 ]
   - name: ascii_punct
-    reset: 1
+    reset: 0
     states: [ 。，, ．， ]
   - name: zh_simp
     reset: 1
     states: [ 繁體, 简体 ]
   - name: show_emoji
     reset: 0
-    states: [ "🈚️️\uFE0E", "🈶️️\uFE0F" ]
+    states: [ "🈚️️😞", "🈶️️😃" ]
 
 #    states: [ 。，, ．， ]
 
