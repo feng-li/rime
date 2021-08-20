@@ -65,3 +65,10 @@ key_binder:
   bindings/+:
     - { when: always, accept: Control+Shift+4, toggle: zh_simp }
     - { when: always, accept: Control+Shift+dollar, toggle: zh_simp }
+
+
+
+# librime-lua 输入动态时间和日期
+# engine:
+#   translators/@6: lua_translator@date_translator
+#   translators/@7: lua_translator@time_translator
