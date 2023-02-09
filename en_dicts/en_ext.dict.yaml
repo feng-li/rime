@@ -1636,7 +1636,7 @@ GPIO	GPIO
 Mac	Mac
 LCD	LCD
 DVD	DVD
-CD	CD
+# CD	CD
 Bluetooth	Bluetooth
 eSIM	eSIM
 UTF	UTF

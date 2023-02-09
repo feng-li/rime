@@ -40,7 +40,7 @@ patch:
   # （macOS 偏好设置的优先级更高，如果勾选【使用大写锁定键切换“ABC”输入法】则始终会切换输入法）
   #
   # 切换中英：
-  # 不同的选项表示：打字打到一半时按下了 CapsLock、Shift、Control 后： 
+  # 不同的选项表示：打字打到一半时按下了 CapsLock、Shift、Control 后：
   # commit_code  上屏原始的编码，然后切换到英文
   # commit_text  上屏拼出的词句，然后切换到英文
   # clear        清除未上屏内容，然后切换到英文
@@ -56,7 +56,7 @@ patch:
 
 
   # 以词定字（上屏当前词组的第一个或最后一个字）
-  key_binder/select_first_character: 
+  key_binder/select_first_character:
   key_binder/select_last_character: "grave"
   # 快捷键
   key_binder/bindings:
@@ -77,14 +77,14 @@ patch:
     # - { when: has_menu, accept: period, send: Page_Down }
 
     # 翻页 [ ]
-    # - { when: paging, accept: bracketleft, send: Page_Up }
-    # - { when: has_menu, accept: bracketright, send: Page_Down }
+    - { when: paging, accept: bracketleft, send: Page_Up }
+    - { when: has_menu, accept: bracketright, send: Page_Down }
 
     # numbered_mode_switch:
     # - { when: always, accept: Control+Shift+1, select: .next }             # 在最近的两个方案之间切换
     - { when: always, accept: Control+Shift+2, toggle: ascii_mode }          # 切换中英标点
     # - { when: always, accept: Control+Shift+3, toggle: full_shape }        # 切换全半角
-    - {when: always, accept: "Control+Shift+4", toggle: traditionalization}  # 切换简繁
+    - { when: always, accept: "Control+Shift+4", toggle: traditionalization }# 切换简繁
 
     # emacs_editing:
     # - { when: composing, accept: Control+p, send: Up }
@@ -183,7 +183,7 @@ patch:
 # question	?
 # at	@
 # bracketleft	[
-# backslash	
+# backslash
 # bracketright	]
 # asciicircum	^
 # underscore	_

@@ -23,10 +23,10 @@ schema:
 # 鼠须管 0.16 后，切换提示通过 states 自定义，不需要提示的可留空，如 states: [ , ]
 switches:
   - name: ascii_mode
-    states: [ 中文, 西文 ]
+    states: [ 中文, 🌐 ]
     reset: 1
   - name: full_shape
-    states: [ 半角, 全角 ]
+    states: [ ◗ , ●  ]
     reset: 0
   - name: ascii_punct
     states: [  。，, ．， ]
@@ -35,7 +35,7 @@ switches:
     states: [ 简体, 繁體 ]
     reset: 0
   - name: emoji
-    states: [ 😞, 😄 ]
+    states: [ ∅ , 😄 ]
     reset: 0
 
 
