@@ -2,17 +2,20 @@
 **/.idea/
 .vscode/
 
+build
 build/
 *.userdb/
 installation.yaml
 user.yaml
 
+sync
 sync/
 others/script/scel2txt/out/*
 others/script/scel2txt/scel/*
 
 *private*
 
+rime*.userdb
 rime_console
 rime_deployer
 rime_patch
