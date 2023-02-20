@@ -151,8 +151,8 @@ end
 function long_word_filter(input, env)
     -- 提升 count 个词语，插入到第 idx 个位置，默认 2、4。
     local config = env.engine.schema.config
-    local count = config:get_string(env.name_space .. "/count") or 2
-    local idx = config:get_string(env.name_space .. "/idx") or 4
+    local count = config:get_int(env.name_space .. "/count") or 2
+    local idx = config:get_int(env.name_space .. "/idx") or 4
 
     local l = {}
     local firstWordLength = 0 -- 记录第一个候选词的长度，提前的候选词至少要比第一个候选词长
@@ -162,7 +162,7 @@ function long_word_filter(input, env)
     local i = 1
     for cand in input:iter() do
         leng = utf8.len(cand.text)
-        if (firstWordLength < 1 or i < tonumber(idx)) then
+        if (firstWordLength < 1 or i < idx) then
             i = i + 1
             firstWordLength = leng
             yield(cand)
@@ -177,7 +177,7 @@ function long_word_filter(input, env)
 		--     end
 		-- 换了个正则，否则中英混输的也会被提升
 		-- elseif ((leng > firstWordLength) and (s2 < count)) and (string.find(cand.text, "^[%w%p%s]+$")==nil) then
-        elseif ((leng > firstWordLength) and (s2 < tonumber(count))) and (string.find(cand.text, "[%w%p%s]+") == nil) then
+        elseif ((leng > firstWordLength) and (s2 < count)) and (string.find(cand.text, "[%w%p%s]+") == nil) then
             yield(cand)
             s2 = s2 + 1
         else
@@ -189,6 +189,49 @@ function long_word_filter(input, env)
     end
 end
 -------------------------------------------------------------
+-- 降低部分英语单词在候选项的位置
+-- https://dvel.me/posts/make-rime-en-better/#短单词置顶的问题
+-- 感谢大佬 @[Shewer Lu](https://github.com/shewer) 指点
+function reduce_english_filter(input, env)
+    local config = env.engine.schema.config
+    -- load data
+    if not env.idx then
+        env.idx = config:get_int(env.name_space .. "/idx") -- 要插入的位置
+    end
+    if not env.words then
+        env.words = {} -- 要过滤的词
+        local list = config:get_list(env.name_space .. "/words")
+        for i = 0, list.size - 1 do
+            local word = list:get_value_at(i).value
+            env.words[word] = true
+        end
+    end
+
+    -- filter start
+    local code = env.engine.context.input
+    if env.words[code] then
+        local first_cand
+        local index = 0
+        for cand in input:iter() do
+            index = index + 1
+            if first_cand then
+                yield(cand)
+            else
+                first_cand = cand
+            end
+            if index >= env.idx then
+                yield(first_cand)
+                break
+            end
+        end
+    end
+
+    -- yield other
+    for cand in input:iter() do
+        yield(cand)
+    end
+end
+-------------------------------------------------------------
 -- v 模式，单个字符优先
 -- 因为设置了英文翻译器的 initial_quality 大于 1，导致输入「va」时，候选项是「van vain …… ā á ǎ à」
 -- 把候选项应改为「ā á ǎ à …… van vain」，让单个字符的排在前面
@@ -196,8 +239,17 @@ function v_filter(input, env)
     local code = env.engine.context.input -- 当前编码
     local l = {}
     for cand in input:iter() do
-        if (cand.text == "Vs.") then -- 特殊情况处理
+        -- 特殊情况处理
+        if (cand.text == "Vs.") then
             yield(cand)
+        end
+        -- 特殊情况处理
+        local arr = {"1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"}
+        for _, v in ipairs(arr) do
+            if (v == cand.text and string.len(code) == 2 and string.find(code, "v") == 1) then
+                yield(cand)
+                break
+            end
         end
         -- 以 v 开头、2 个长度的编码、候选项为单个字符的，提到前面来。
         if (string.len(code) == 2 and string.find(code, "v") == 1 and utf8.len(cand.text) == 1) then
@@ -206,7 +258,7 @@ function v_filter(input, env)
             table.insert(l, cand)
         end
     end
-    for i, cand in ipairs(l) do
+    for _, cand in ipairs(l) do
         yield(cand)
     end
 end
@@ -229,9 +281,9 @@ function code_length_limit_processor(key, env)
     local ctx = env.engine.context
     local config = env.engine.schema.config
     -- 限制
-    local length_limit = config:get_string(env.name_space) or 100
+    local length_limit = config:get_int(env.name_space) or 100
     if (length_limit ~= nil) then
-        if (string.len(ctx.input) > tonumber(length_limit)) then
+        if (string.len(ctx.input) > length_limit) then
             -- ctx:clear()
             ctx:pop_input(1) -- 删除输入框中最后个编码字符
             return 1

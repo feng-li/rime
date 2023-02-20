@@ -8,7 +8,7 @@
 #
 # 来源：
 # 常见一万词 [google-10000-english.txt](https://github.com/first20hours/google-10000-english/)
-# 合并不重复的 2000 多个 [融合拼音方案](https://github.com/tumuyan/rime-melt) 的英文词库
+# 合并不重复的 2000 多个 [融合拼音方案](https://github.com/tumuyan/rime-melt) 的英文词库 
 #
 #
 # 改为按字母排序
@@ -1706,7 +1706,7 @@ cayman	cayman
 # cbs	cbs
 # cc	cc
 # CCD	CCD
-# CD	CD
+CD	CD
 cDNA	cDNA
 # CdS	CdS
 # CDT	CDT

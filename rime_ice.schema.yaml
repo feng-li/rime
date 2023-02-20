@@ -18,9 +18,9 @@ schema:
 
 
 # 开关
-# reset 会导致切换方案、输入法、程序后，回到设定的选项。
-# 可以注释掉 reset，和 default 中的 switcher/save_options 选项配合以记忆开关状态。
-# 鼠须管 0.16 后，切换提示通过 states 自定义，不需要提示的可留空，如 states: [ , ]
+# 鼠须管 0.16 后，快捷键切换时的提示由 states 自定义
+# 注释掉 states 后，仍可以通过自定义的快捷键切换，但没有切换提示，也不会出现在方案选单中
+# 注释掉 reset 后，配合 default.custom.yaml 中的 save_options，可以永久记住开关状态，切换程序后也不会还原。
 switches:
   - name: ascii_mode
     states: [ 中文, 🌐 ]
@@ -39,7 +39,7 @@ switches:
     reset: 0
 
 
-# 输入引擎，没注释的是自带的必要的组件
+# 输入引擎
 engine:
   processors:
     - lua_processor@select_character             # 以词定字
@@ -67,18 +67,19 @@ engine:
     - reverse_lookup_translator@liangfen  # 反查，两分拼字
     - lua_translator@unicode              # Unicode
   filters:
-    - lua_filter@long_word_filter  # 长词优先
-    - simplifier@emoji             # Emoji
-    - simplifier@traditionalize    # 简繁切换
-    - lua_filter@v_filter          # v 模式 symbols 优先（否则是英文优先）
-    - uniquifier                   # 去重
+    - lua_filter@long_word_filter       # 长词优先
+    - simplifier@emoji                  # Emoji
+    - simplifier@traditionalize         # 简繁切换
+    - lua_filter@v_filter               # v 模式 symbols 优先（否则是英文优先）
+    - lua_filter@reduce_english_filter  # 降低部分英语单词在候选项的位置
+    - uniquifier                        # 去重
 
 
-# 限制码长，默认 100。（最多能输入的字符个数）
+# Lua 配置: 限制码长，默认 100。（最多能输入的字符个数）
 code_length_limit_processor: 100
 
 
-# 日期、时间、星期、ISO 8601、时间戳的触发关键字
+# Lua 配置: 日期、时间、星期、ISO 8601、时间戳的触发关键字
 date_translator:
   date: rq       # 日期： 2022-11-29
   time: sj       # 时间： 18:13
@@ -87,11 +88,24 @@ date_translator:
   timestamp: ts  # 时间戳： 1669716794
 
 
-# 长词优先，提升 count 个词语，插入到第 idx 个位置，默认 2、4。
+# Lua 配置: 长词优先，提升 count 个词语，插入到第 idx 个位置。
 # 示例：将 2 个词插入到第 4、5 个候选项，输入 jie 得到「1接 2解 3姐 4饥饿 5极恶」
 long_word_filter:
   count: 2
   idx: 4
+
+
+# Lua 配置: 降低部分英语单词在候选项的位置
+# 详细介绍 https://dvel.me/posts/make-rime-en-better/#短单词置顶的问题
+# 正常情况： 输入 rug 得到 「1.rug 2.如果 …… 」
+# 降低之后： 输入 rug 得到 「1.如果 2.rug …… 」
+reduce_english_filter:
+  idx: 2  # 降低到第 idx 个位置
+  words:  # 要降低的单词，匹配的是输入码，即全小写。
+    - rug
+    - bus
+    - ship
+  # words: [rug, bus, ship]  # 这么写也行
 
 
 # 从 default 继承快捷键
@@ -171,6 +185,7 @@ recognizer:
     # url_2: "^[A-Za-z]+[.].*"             # 支持 google.com abc.txt 等网址或文件名，会导致句号不会让句子上屏，或使用句号翻页时需要注释掉
     win_path: "^[A-Za-z]:.*"             # 支持 c:\file\path 之类的路径输入
     colon: "^[A-Za-z]+:.*"               # 上面的超集，可以输入冒号，不会导致句子直接上屏
+    underscore: "^[A-Za-z]+_.*"          # 可以输入下划线 _ ，不会导致句子直接上屏
     # punct: "^/([0-9]+[a-z]*|[a-z]+)$"  # 响应默认的 punctuation/symbols 的「/」开头的字符
     punct: "^v([0-9]|10|[A-Za-z]+)$"     # 响应 symbols_custom.yaml 下的 punctuator/symbols，用「v」替换「/」并支持大写
     reverse_lookup: "^u[a-z]+$"          # 响应两分的反查
@@ -256,7 +271,7 @@ speller:
     - derive/([zcs])h(a|e|i|u|ai|ei|an|en|ou|uo|ua|un|ui|uan|uai|uang|ang|eng|ong)$/h$1$2/  # hzi → zhi
     - derive/([zcs])h([aeiu])$/$1$2h/  # zih → zhi
     # ai
-    - derive/^([wghkzc])ai$/$1ia/  # wia → wai
+    - derive/^([wghk])ai$/$1ia/  # wia → wai
     # ia
     - derive/([qjx])ia$/$1ai/  # qai → qia
     # ei
