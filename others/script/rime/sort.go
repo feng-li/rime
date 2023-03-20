@@ -147,12 +147,12 @@ func Sort(dictPath string, flag int) {
 	}
 
 	// 其他词库需要从一个或多个词库中去重后再写入
-	if dictPath == SogouPath || dictPath == ExtPath || dictPath == TencentPath {
+	if contains([]string{SogouPath, ExtPath, TencentPath}, dictPath) {
 		var intersect mapset.Set[string] // 交集，有交集的就是重复的，去掉
 		switch dictPath {
-		case SogouPath: // sogou 不和 base 有重复
+		case SogouPath:
 			intersect = SogouSet.Intersect(BaseSet)
-		case ExtPath: // ext 不和 base+sogou 有重复
+		case ExtPath:
 			intersect = ExtSet.Intersect(BaseSet.Union(SogouSet))
 		case TencentPath:
 			intersect = TencentSet.Intersect(BaseSet.Union(SogouSet).Union(ExtSet))

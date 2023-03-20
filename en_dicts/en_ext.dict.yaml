@@ -7,7 +7,7 @@
 #
 ---
 name: en_ext
-version: "2023-02-18"
+version: "2023-03-19"
 sort: by_weight
 ...
 # 一些杂项
@@ -15,6 +15,7 @@ sort: by_weight
 <br>	br
 .DS_Store	DSStore
 唵嘛呢叭咪吽	ongmanibeimeihong
+唵嘛呢嘛呢叭咪吽	ongmanimanibeimeihong
 
 
 # 按键
@@ -170,6 +171,12 @@ Noah	Noah
 Jay	Jay
 Enya	Enya
 Juno	Juno
+Trump	Trump
+Biden	Biden
+Joseph	Joseph
+Braun	Braun
+Bayes	Bayes
+Saul	Saul
 
 
 # 带权重的系列
@@ -244,19 +251,6 @@ Windows 8	Windows	8
 Windows 10	Windows	10
 Windows 11	Windows	11
 
-SQL Server	SQLServer	2
-Microsoft SQL Server	SQLServer	1
-Microsoft SQL Server	MicrosoftSQLServer
-
-SSH	SSH	2
-Secure Shell	SSH	1
-Secure Shell	SecureShell
-
-ISO	ISO	2
-ISO 8601	ISO	1
-RFC	RFC	2
-RFC 3339	RFC	1
-
 
 # 往下开始都是扩展单词
 # +_+
@@ -277,6 +271,16 @@ League of Legends	LOL
 League of Legends	LeagueofLegends
 Laugh Out Loudly	LOL
 Laugh Out Loudly	LaughOutLoudly
+SQL Server	SQLServer
+Microsoft SQL Server	SQLServer
+Microsoft SQL Server	MicrosoftSQLServer
+SSH	SSH
+Secure Shell	SSH
+Secure Shell	SecureShell
+ISO	ISO
+ISO 8601	ISO
+RFC	RFC
+RFC 3339	RFC
 Pro Max	ProMax
 Aeron	Aeron
 Aeron Chair	AeronChair
@@ -352,6 +356,7 @@ AfterShokz	AfterShokz
 Aeropex	Aeropex
 Xnip	Xnip
 Workspace	Workspace
+Google Chrome	GoogleChrome
 Google Workspace	GoogleWorkspace
 WYSIWYG	WYSIWYG
 What You See Is What You Get	WYSIWYG
@@ -549,8 +554,9 @@ Sourcetree	Sourcetree
 Spiritfarer	Spiritfarer
 TCP/IP	tcpip
 Twitter	Twitter
-V2EX	ver
-V2EX	verex
+V2EX	Ver
+V2EX	VerEX
+V2EX	VtoEX
 VSCode	VSCode
 Vue	Vue
 Vue.js	Vuejs
@@ -817,7 +823,7 @@ SaneDesk	SaneDesk
 Scrapbook	Scrapbook
 ScreenFloat	ScreenFloat
 ScreenFlow	ScreenFlow
-Scribble	Scribble
+scribble	scribble
 Scrivener	Scrivener
 SDK	SDK
 Software Development Kit	SDK
@@ -1075,6 +1081,7 @@ SWAT	SWAT
 footer	footer
 header	header
 GitHub Copilot	GitHubCopilot
+GitHub Copilot CLI	GitHubCopilotCLI
 Blog	Blog
 iPadOS	iPadOS
 Apple Pencil	ApplePencil
@@ -1242,7 +1249,6 @@ Windows Media Player	MediaPlayer
 Microsoft Azure 	MicrosoftAzure
 Microsoft Azure 	Azure
 Microsoft Edge	MicrosoftEdge
-Microsoft Edge	Edge
 Visual Studio Code	VisualStudioCode
 Visual Studio Code	VSCode
 PowerShell	PowerShell
@@ -1646,12 +1652,12 @@ ASCII	ASCII
 ANSI	ANSI
 IEEE	IEEE
 Institute of Electrical and Electronics Engineers	IEEE
-Institute of Electrical and Electronics Engineers	InstituteofElectricalandElectronicsEngineers
 DjVu	DjVu
 LaTeX	LaTeX
 Wire	Wire
 Guard	Guard
 API	API
+Application Programming Interface	API
 Ethernet	Ethernet
 SOCKS	SOCKS
 PrintScreen	PrintScreen
@@ -1677,6 +1683,7 @@ LGPL	LGPL
 GNU Lesser General Public License	LGPL
 GNU Lesser General Public License	GNULesserGeneralPublicLicense
 Mozilla	Mozilla
+Mozilla	Firefox	MozillaFirefox
 Apache	Apache
 Steam	Steam
 App	App
@@ -1830,7 +1837,12 @@ Quality of Service	QoS
 Quality of Service	QualityofService
 DoH	DoH
 DNS over HTTPS	DoH
+DNS over HTTPS/3	DoH
 DNS over HTTPS	DNSoverHTTPS
+DNS over HTTPS/3	DNSoverHTTPS
+DoQ	DoQ
+DNS over QUIC	DoQ
+DNS over QUIC	DNSoverQUIC
 HK	HK
 Hong Kong	HK
 Hong Kong	HongKong
@@ -1897,7 +1909,6 @@ SigmaOS	SigmaOS
 switcher	switcher
 fuckity	fuckity
 fo	fo
-NIh	NIh
 layouts	layouts
 redirect	redirect
 redirects	redirects
@@ -1906,3 +1917,67 @@ Unix shell	Unixshell
 shells	shells
 Zaraz	Zaraz
 waitlist	waitlist
+diffusion	diffusion
+Scribble Diffusion	ScribbleDiffusion
+Lenovo	Lenovo
+Adios	Adios
+EMS	EMS
+Express Mail Service	EMS
+IPFS	IPFS
+InterPlanetary File System	IPFS
+InterPlanetary File System	InterPlanetaryFileSystem
+interplanetary	interplanetary
+Noria	Noria
+DHCP	DHCP
+Dynamic Host Configuration Protocol	DHCP
+PPPoE	PPPoE
+Point-to-Point Protocol over Ethernet	PPPoE
+IPoE	IPoE
+Internet Protocol over Ethernet	IPoE
+VLAN	VLAN
+Virtual Local Area Network	VLAN
+WLAN	WLAN
+Wireless LAN	WLAN
+GPT	GPT
+Generative Pre-trained Transformer	GPT
+Bard	Bard
+bard	bard
+LaMDA	LaMDA
+tokens	tokens
+roadmap	roadmap
+Coinbase Wallet	CoinbaseWallet
+MetaMask	MetaMask
+favicon	favicon
+Discord	Discord
+New Bing	NewBing
+Notion AI	NotionAI
+memos	memos
+flomo	flomo
+arabica	Arabica
+robusta	robusta
+HanLP	HanLP
+Arch Linux	ArchLinux
+AlmaLinux	AlmaLinux
+Fedora CoreOS	FedoraCoreOS
+CoreOS	CoreOS
+OpenBSD	OpenBSD
+Rocky Linux	RockyLinux
+Vultr	Vultr
+GoFrame	GoFrame
+ORM	ORM
+Object Relational Mapping	ORM
+Gin	Gin
+Echo	Echo
+Iris	Iris
+iris	iris
+burnt	burnt
+KPI	KPI
+Key Performance Indicators	KPI
+mutex	mutex
+TIOBE	TIOBE
+DigitalOcean	DigitalOcean
+Google Authenticator	GoogleAuthenticator
+Authenticator	Authenticator
+authenticator	authenticator
+Depay	Depay
+codeium	codeium

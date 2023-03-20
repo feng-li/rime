@@ -24,23 +24,22 @@ type lemma struct {
 
 const (
 	mark        = "# +_+" // 词库中的标记符号，表示从开始检查或排序
-	HanziPath = "/Users/dvel/Library/Rime/cn_dicts/8105.dict.yaml"
-	BasePath  = "/Users/dvel/Library/Rime/cn_dicts/base.dict.yaml"
-	SogouPath = "/Users/dvel/Library/Rime/cn_dicts/sogou.dict.yaml"
+	HanziPath   = "/Users/dvel/Library/Rime/cn_dicts/8105.dict.yaml"
+	BasePath    = "/Users/dvel/Library/Rime/cn_dicts/base.dict.yaml"
+	SogouPath   = "/Users/dvel/Library/Rime/cn_dicts/sogou.dict.yaml"
 	ExtPath     = "/Users/dvel/Library/Rime/cn_dicts/ext.dict.yaml"
 	TencentPath = "/Users/dvel/Library/Rime/cn_dicts/tencent.dict.yaml"
 	EmojiPath   = "/Users/dvel/Library/Rime/opencc/emoji-map.txt"
-	EnPath = "/Users/dvel/Library/Rime/en_dicts/en.dict.yaml"
+	EnPath      = "/Users/dvel/Library/Rime/en_dicts/en.dict.yaml"
 
 	DefaultWeight = 100 // sogou、ext、tencet 词库中默认的权重数值
 )
 
 var (
-	BaseSet  mapset.Set[string]
-	SogouSet mapset.Set[string]
-	ExtSet           mapset.Set[string]
-	TencentSet       mapset.Set[string]
-	SogouSetWithCode mapset.Set[string]
+	BaseSet    mapset.Set[string]
+	SogouSet   mapset.Set[string]
+	ExtSet     mapset.Set[string]
+	TencentSet mapset.Set[string]
 )
 
 func init() {
