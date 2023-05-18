@@ -6,30 +6,25 @@ recipe:
   description: >-
     完整安装、更新
 install_files: >-
-  cn_dicts/8105.dict.yaml
-  cn_dicts/base.dict.yaml
-  cn_dicts/sogou.dict.yaml
-  cn_dicts/ext.dict.yaml
-  cn_dicts/tencent.dict.yaml
-  cn_dicts/others.dict.yaml
-  en_dicts/en.dict.yaml
-  en_dicts/en_ext.dict.yaml
-  en_dicts/cn_en.dict.yaml
-  opencc/emoji-map.txt
-  opencc/emoji.json
-  opencc/emoji.txt
-  opencc/others.txt
-  custom_phrase.txt
-  default.yaml
-  rime_ice.dict.yaml
-  rime_ice.schema.yaml
-  symbols_custom.yaml
-  double_pinyin.schema.yaml
-  double_pinyin_flypy.schema.yaml
-  liangfen.dict.yaml
-  liangfen.schema.yaml
-  melt_eng.dict.yaml
-  melt_eng.schema.yaml
+  cn_dicts/*.*
+  en_dicts/*.*
+  opencc/*.*
   rime.lua
+  lua/*.*
+  lua/cold_word_drop/*.*
+  default.yaml
   squirrel.yaml
+  rime_ice.schema.yaml
+  rime_ice.dict.yaml
+  double_pinyin.schema.yaml
+  double_pinyin_mspy.schema.yaml
+  double_pinyin_flypy.schema.yaml
+  double_pinyin_ziguang.schema.yaml
+  symbols_v.yaml
+  symbols_caps_v.yaml
+  liangfen.schema.yaml
+  liangfen.dict.yaml
+  melt_eng.schema.yaml
+  melt_eng.dict.yaml
+  custom_phrase.txt
   zh-hans-t-essay-bgw.gram
