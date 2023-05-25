@@ -5,7 +5,7 @@
 # 方案说明
 schema:
   schema_id: rime_ice
-  name: 雾凇拼音
+  name: 拼音
   version: "2023-05-16"
   author:
     - Dvel
@@ -32,8 +32,8 @@ switches:
     states: [ 简, 繁 ]
     reset: 0
   - name: emoji
-    states: [ 💀, 😄 ]
-    reset: 1
+    states: [ ∅, 😄 ]
+    reset: 0
   - name: full_shape
     states: [ 半角, 全角 ]
     reset: 0
