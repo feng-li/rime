@@ -12,8 +12,6 @@ config_version: '2023-05-09'
 # 方案列表
 schema_list:
   - schema: rime_ice
-#  - schema: double_pinyin
-#  - schema: double_pinyin_flypy
 
 
 # 菜单
