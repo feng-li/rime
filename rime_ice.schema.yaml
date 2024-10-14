@@ -24,7 +24,7 @@ schema:
 switches:
   - name: ascii_mode
     states: [ 中, Ａ ]
-    reset: 0
+    reset: 1
   - name: ascii_punct  # 中英标点
     states: [ ¥, $ ]
     reset: 0
@@ -145,7 +145,8 @@ reduce_english_filter:
     tad, tail, taj, tar, tax, tec, ted, tel, ter, tex, tic, tied, tier, ties, tim, tin, tit, tour, tout, tum,
     wag, wand, womens, wap, wax, weir, won, went,
     yan, yen,
-    zach
+    zach,
+    my, mt, dj, as, js, cs, ak, ps, cd, cn, hk, bt, pk  # 一些由算法转写的大写单词编码
   ]
 
 
@@ -294,7 +295,7 @@ pin_cand_filter:
 translator:
   dictionary: rime_ice         # 挂载词库 rime_ice.dict.yaml
   enable_word_completion: true # 大于 4 音节的词条自动补全，librime > 1.11.2
-  spelling_hints: 0            # corrector.lua ：为了让错音错字提示的 Lua 同时适配全拼双拼，将拼音显示在 comment 中
+  spelling_hints: 8            # corrector.lua ：为了让错音错字提示的 Lua 同时适配全拼双拼，将拼音显示在 comment 中
   always_show_comments: true   # corrector.lua ：Rime 默认在 preedit 等于 comment 时取消显示 comment，这里强制一直显示，供 corrector.lua 做判断用。
   initial_quality: 1.2         # 拼音的权重应该比英文大
   comment_format:              # 标记拼音注释，供 corrector.lua 做判断用
