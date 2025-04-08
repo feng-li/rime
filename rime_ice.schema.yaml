@@ -1,6 +1,8 @@
 # Rime schema
 # encoding: utf-8
 
+# INSTALL DEPENDENCE
+# apt install librime-plugin-lua
 
 # 方案说明
 schema:
