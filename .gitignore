@@ -1,8 +1,8 @@
 .DS_Store
 **/.idea/
 .vscode/
+dist/
 
-build
 build/
 sync/
 *.userdb/
@@ -16,16 +16,8 @@ others/script/scel2txt/out/*
 others/script/scel2txt/scel/*
 cn_dicts/temp.txt
 
-deb/**
-**/double_pinyin*
-
 *private*
 
-squirrel.yaml
-t9.schema.yaml
-weasel.yaml
-
-rime*.userdb
 rime_console
 rime_deployer
 rime_patch
