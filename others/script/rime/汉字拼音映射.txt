@@ -13,15 +13,14 @@
 猼 bo
 礤 ca
 閦 chu
+膪 chuai
 鯙 chun
 𪻐 cong
 䐛 da
 蜑 dan
-氹 dang
 鮗 dong
 遯 dun
 犎 feng
-鳆 fu
 𫚒 fu
 咈 fu
 㹴 geng
@@ -30,14 +29,14 @@
 淈 gu
 鱥 gui
 脝 heng
-魟 hong
+𫚉 hong
 睺 hou
 泘 hu
 沕 hu
 㺀 hu
+𬴐 huan
 獚 huang
 𫚔 hui
-檵 ji
 䇲 jia
 榎 jia
 鳽 jian
@@ -47,13 +46,12 @@
 喼 jie
 椇 ju
 鵙 ju
-罥 juan
-朘 juan
 濬 jun
 埈 jun
 峠 ka
 窾 kuan
 鞟 kuo
+筈 kuo
 鯻 la
 鿶 lang
 𧒽 lei
@@ -66,22 +64,17 @@
 𤝽 lv
 铓 mang
 𱇮 mang
-脢 mei
 濛 meng
-蒾 mi
 䕷 mi
 旼 min
 慜 min
 暋 min
-麿 mo
 拏 na
-㖏 nie
 鬅 peng
 魾 pi
 魮 pi
 𫚙 pu
 碁 qi
-箝 qian
 犭 quan
 荵 ren
 叡 rui
@@ -96,11 +89,9 @@
 瓋 ti
 魠 tuo
 梶 wei
-揾 wen
 螉 weng
 蟱 wu
 㵲 wu
-矽 xi
 蠵 xi
 鰕 xia
 𮬣 xian
@@ -113,7 +104,6 @@
 鰋 yan
 鷃 yan
 飖 yao
-蓺 yi
 鮧 yi
 鮨 yi
 煐 ying
@@ -121,31 +111,44 @@
 魣 yu
 蚖 yuan
 䗃 zhan
+霑 zhan
 鱵 zhen
 炡 zheng
 晸 zheng
 凪 zhi
 塚 zhong
 鯮 zong
-𭎂 zong
 ### ----------在字表但未被脚本自动纳入的注音：----------
 # 嗯 eng # 目前以 en 为主
+揞 an
 鿫 ao
 㞎 ba
 𰻝 biang
 𤭢 cei
 蟌 cong
+鿕 dan
+氹 dang
 㨃 dui
 欸 ei
+鳆 fu
 鿔 ge
 睆 huan
+檵 ji
+朘 juan
+罥 juan
 佧 ka
 堀 ku
 菈 la
 𫟷 li
+脢 mei
+蒾 mi
+麿 mo
 鿭 ni
 嬢 niang
+㖏 nie
+𤆵 pa
 珮 pei
+榀 pin
 螓 qin
 䞍 qing
 朊 ruan
@@ -156,13 +159,19 @@
 鿬 tian
 樋 tong
 氽 tun
+揾 wen
+矽 xi
 雫 xia
 咲 xiao
+蓺 yi
 哟 yo
 唷 yo
 𫚪 yu
+膣 zhi
 跩 zhuai
+𭎂 zong
 # -_- ----------这行下面是要过滤掉的词汇，不进行注音检查----------
+潏河
 娭毑
 杭育
 氐土貉
@@ -193,9 +202,6 @@
 宇髄天元
 廻龙村
 天廻龙
-火齐汤
-火齐红
-火齐珠
 齐缞
 㺢㹢狓
 鵋䳢
@@ -330,6 +336,7 @@
 陈金釭起义旧址
 青釭剑
 噌吰
+噌吰者
 郕王
 城中居民风裂骭
 池酒林胾
@@ -407,6 +414,7 @@
 胤礽
 黄泆潼
 剑首一吷
+礓䃰
 礓䃰儿
 蒋攸铦
 官田原三筊埤古水道遗构
@@ -431,7 +439,6 @@
 褦襶
 南宫仆射
 南蛮鴃舌
-囊膪
 李搢臣
 李搢荣
 倪朝搢
@@ -486,6 +493,9 @@
 姑射神人
 姑射仙子
 姑射冰肌
+无射
+周景王之无射
+周景王之无射也
 糸部
 糸守变电所
 糸守高中
@@ -576,7 +586,6 @@
 者竜乡
 獉狉
 杜凯琹
-褚小杯大
 悃愊无华
 嫏嬛
 勒掯
@@ -595,7 +604,6 @@
 麦薲草
 瞒神諕鬼
 酕醄大醉
-镁蚡
 梅瑴成
 彭禺厶
 埤堄
@@ -616,8 +624,6 @@
 人面黑腄蚃
 蛈蛚
 朣朦
-已报生擒吐谷浑
-吐谷浑
 鼧鼥
 跅弛不羁
 托氏琩螺
@@ -712,10 +718,6 @@
 琅邪王
 西山兰若试茶歌
 阿兰若
-群氓
-群氓效应
-愚氓
-僧是愚氓犹可训
 钱松喦
 欹嵚历落
 合原槻羽
@@ -764,7 +766,6 @@
 擸𢶍
 蠽蟟
 秋山燿平
-黄霑
 㶉𫛶
 朱祐杬
 朱载坖
@@ -781,6 +782,7 @@
 李玟雨
 和世㻋
 亡是公
+日知其所亡
 白帢青衫
 劈地价来
 十夫桡椎
@@ -809,3 +811,11 @@
 禽滑釐
 夏无且
 属予作文以记之
+皋陶
+𦗒狐
+不亦说乎
+日掛中天
+鹤庆乾酒
+吴廷瑈
+刘畊宏
+楳图一雄
