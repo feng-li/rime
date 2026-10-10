@@ -2,7 +2,7 @@
 schema:
   schema_id: english_booster
   name: English Booster
-  version: "2026-10-10.10"
+  version: "2026-10-10.12"
   description: Natural English typing, verb forms, optional spelling suggestions, and personal words.
   dependencies:
     - english_booster_inflections
@@ -41,6 +41,12 @@ engine:
     - lua_filter@*english_fuzzy
     - lua_filter@*english_booster*case_filter
     - uniquifier
+
+command_mode:
+  __include: english_commands:/command_mode
+
+emacs_keys:
+  __include: emacs_keys:/emacs_keys
 
 menu:
   page_size: 5

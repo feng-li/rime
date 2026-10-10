@@ -21,6 +21,8 @@ request it, not automatically during ordinary typing.
   `forces`. The literal `force` remains first.
 - When normal completion finds nothing, a typo such as `forcng` can offer
   `forcing`. Your typed spelling remains first; correction is never automatic.
+- Type a listed command such as `git`, `emacs`, or `latexmk`, then Space or Enter
+  to switch to plain English for its arguments. Tap Shift to return to Booster.
 - To remember a new alphabetic word, type it and press **Ctrl+Enter before Space
   or punctuation**. This commits and saves the literal word, without adding a
   space or newline. It is available for completion immediately and after restarts.
@@ -137,6 +139,55 @@ Switching with unfinished input retains already selected text and commits the
 remaining typed characters, rather than accepting a guessed completion. Plain
 English mode has no completion popup; English Booster is the predictive mode.
 
+### Automatic plain English for commands
+
+In either Pinyin or English Booster, type an exact command name from
+[english_commands.yaml](english_commands.yaml), then press unmodified Space or
+Enter. Rime commits the literal command and switches to the existing plain
+English mode, with no prediction menu for the arguments or flags.
+
+Space adds one space. Enter confirms the command without a newline; another
+Enter, now in plain English, is passed to the application normally. The switch
+does not submit a command or otherwise send an extra keypress. Plain English
+remains active until you switch modes; tapping Shift returns to English Booster.
+
+Names are case-sensitive and matched against the entire composing input, not
+prefixes or surrounding application text. `gi`, `emac`, and `Git` do not trigger
+the default list. Ctrl+Enter still saves a word without switching, modified
+Space/Enter are left alone, and a deliberately selected different candidate is
+not replaced. Tab and numbered selections keep their existing behavior.
+
+Edit the shared `command_mode/commands` list in `english_commands.yaml`, then
+redeploy. Set it to `[]` to disable automatic switching. Use alphabetic command
+names that can remain in the composition until Space/Enter. This is a simple
+word-list rule, not terminal detection: a listed word also triggers in other
+applications, so ordinary prose words such as `make`, `find`, and `cat` are
+excluded by default.
+
+### Emacs command-key passthrough
+
+In both Pinyin and English Booster, `C-x`, `C-c`, and standalone Escape start a
+temporary key-passthrough sequence. For example, `C-x b`, `C-c z`, and `ESC x`
+reach the application as original keyboard events, without a prediction menu.
+Configured nested prefixes such as `C-x r b`, `C-x 4 f`, and `C-x a i g` also
+work. Normal input resumes after the command key; the schema and input mode do
+not change. Holding or releasing Ctrl/Shift does not finish the sequence.
+
+`C-g` cancels both pending IME input and the passthrough sequence, and reaches
+Emacs directly. Escape discards unfinished composition before starting its
+prefix. `C-x`/`C-c` retain already selected text and commit remaining literal
+input first, using the same preservation policy as Shift cycling. Frontend
+composition resets and schema changes clear pending prefix state.
+
+This is a **Rime-wide rule**, not Emacs-window detection: it also applies in
+other applications. Rime cannot inspect Emacs's active keymap or detect when a
+custom command finishes. [emacs_keys.yaml](emacs_keys.yaml) therefore lists
+prefixes, not every command. Add custom nested prefixes using Rime key names,
+then redeploy. For example, add `Control+c p` if `C-c p` is your own prefix map;
+its next key will also pass through. Common standard nested prefixes are bundled,
+but arbitrary package-specific prefix trees are not inferred automatically.
+Set `emacs_keys/prefixes` to `[]` to disable the rule, including the `C-g` reset.
+
 ## Enable English Booster
 
 Use a Rime installation with the Lua plugin. This configuration has been checked
@@ -156,6 +207,8 @@ The feature uses these source files:
 | File | Purpose |
 | --- | --- |
 | [english_booster.schema.yaml](english_booster.schema.yaml) | Dedicated English completion schema and input keys. |
+| [english_commands.yaml](english_commands.yaml) | Shared editable command names that enter plain English on Space/Enter. |
+| [emacs_keys.yaml](emacs_keys.yaml) | Shared editable Emacs prefixes for temporary raw-key passthrough. |
 | [english_booster.dict.yaml](english_booster.dict.yaml) | Imports the existing English dictionaries. |
 | [english_booster.inflections.dict.yaml](english_booster.inflections.dict.yaml) | Wrapper for the bundled base/form table. |
 | [english_booster_inflections.schema.yaml](english_booster_inflections.schema.yaml) | Build-only dependency that compiles the inflection table; not a fourth input mode. |
@@ -164,7 +217,7 @@ The feature uses these source files:
 | [lua/english_booster.lua](lua/english_booster.lua) | Natural typing, capitalization, numbered selection, and explicit word learning. |
 | [lua/english_inflections.lua](lua/english_inflections.lua) | Read-only verb lookup with safe learning through the existing English user dictionary. |
 | [lua/english_fuzzy.lua](lua/english_fuzzy.lua) | Bounded one-edit spelling fallback, only when normal completion finds nothing. |
-| [lua/input_mode_cycle.lua](lua/input_mode_cycle.lua) | Shared three-way Shift cycle. |
+| [lua/input_mode_cycle.lua](lua/input_mode_cycle.lua) | Shared Shift cycle, exact-command mode switching, and Emacs-prefix passthrough. |
 | `default.custom.yaml` | Adds English Booster to the schema list and disables the old binary Shift toggle. |
 | `rime_ice.custom.yaml` | Enables the shared Shift processor in Pinyin. |
 | `ibus_rime.custom.yaml` | Enables inline typing for the IBus frontend. |
@@ -192,11 +245,15 @@ In `rime_ice.custom.yaml`:
 ```yaml
 patch:
   "engine/processors/@before 0": lua_processor@*input_mode_cycle
+  "command_mode":
+    __include: english_commands:/command_mode
+  "emacs_keys":
+    __include: emacs_keys:/emacs_keys
 ```
 
 These overrides do not edit the original `default.yaml` or
 `rime_ice.schema.yaml`. The English schema already loads the shared Shift
-processor.
+processor and includes the same command and Emacs-prefix lists.
 
 ### Inline typing and candidate layout
 

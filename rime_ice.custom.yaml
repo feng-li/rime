@@ -1,3 +1,7 @@
-# Keep the upstream Pinyin schema intact; add the shared Shift-tap cycle first.
+# Keep the upstream Pinyin schema intact; add shared input-mode handling first.
 patch:
   "engine/processors/@before 0": lua_processor@*input_mode_cycle
+  "command_mode":
+    __include: english_commands:/command_mode
+  "emacs_keys":
+    __include: emacs_keys:/emacs_keys
