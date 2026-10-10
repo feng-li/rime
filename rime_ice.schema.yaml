@@ -1,8 +1,6 @@
 # Rime schema
 # encoding: utf-8
 
-# INSTALL DEPENDENCE
-# apt install librime-plugin-lua
 
 # 方案说明
 schema:
@@ -101,8 +99,11 @@ date_translator:
   dateen: rqen   # 英文日期： 英式 8 March 2026 | 美式 March 8, 2026
 
 
-# Lua 配置：农历的触发关键字
-lunar: nl  # 农历： 二〇二三年冬月二十 癸卯年（兔）冬月二十
+# Lua 配置：农历
+# 农历触发关键字
+# template 字段：{干支年} {农历月} {农历日} {生肖} {俗称农历月} {简记农历日}
+lunar: nl
+lunar_template: "{干支年}{生肖}年{俗称农历月}{农历日}"
 
 
 # Lua 配置: 生成 UUID 的触发关键字
@@ -170,6 +171,7 @@ translator:
   enable_word_completion: true # 大于 4 音节的词条自动补全，librime > 1.11.2
   spelling_hints: 0            # corrector.lua ：为了让错音错字提示的 Lua 同时适配全拼双拼，将拼音显示在 comment 中
   always_show_comments: true   # corrector.lua ：Rime 默认在 preedit 等于 comment 时取消显示 comment，这里强制一直显示，供 corrector.lua 做判断用。
+  # keep_comments: true        # corrector.lua ：显示拼音注释
   initial_quality: 1.2         # 拼音的权重应该比英文大
   comment_format:              # 标记拼音注释，供 corrector.lua 做判断用
     - xform/^/［/
@@ -276,7 +278,7 @@ recognizer:
     unicode: "^U[a-f0-9]+"              # 脚本将自动获取第 2 个字符 U 作为触发前缀，响应 lua_translator@*unicode，输出 Unicode 字符
     number: "^R[0-9]+[.]?[0-9]*"        # 脚本将自动获取第 2 个字符 R 作为触发前缀，响应 lua_translator@*number_translator，数字金额大写
     calculator: "^cC.+"                 # 响应 lua_translator@*calc_translator，计算器。前缀设定项 calculator/prefix
-    gregorian_to_lunar: "^N[0-9]{1,8}"  # 脚本将自动获取第 2 个字符 N 作为触发前缀，响应 lua_translator@*lunar，公历转农历，输入 N20240115 得到「二〇二三年腊月初五」
+    gregorian_to_lunar: "^N[0-9]{1,8}"  # 响应 lua_translator@*lunar，公历转农历
 
 
 # 从 default 继承快捷键
