@@ -1,0 +1,7 @@
+# Append a dedicated English schema while preserving the existing schema list.
+patch:
+  "schema_list/@next":
+    schema: english_booster
+  # The shared Lua processor handles taps. Disable the old binary Shift toggle.
+  "ascii_composer/switch_key/Shift_L": noop
+  "ascii_composer/switch_key/Shift_R": noop

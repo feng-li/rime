@@ -1,0 +1,3 @@
+# Keep the upstream Pinyin schema intact; add the shared Shift-tap cycle first.
+patch:
+  "engine/processors/@before 0": lua_processor@*input_mode_cycle
