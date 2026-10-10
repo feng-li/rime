@@ -15,7 +15,8 @@ request it, not automatically during ordinary typing.
 - Select **English Booster** with Ctrl + backtick, or tap Shift to cycle through
   Pinyin, plain English, and English Booster.
 - Type normally: Space preserves the typed word by default. Use Tab or a visible
-  candidate number (1–5) when you want a completion.
+  candidate number (1–5) when you want a completion. The popup starts at the third
+  alphabetic letter; one- and two-letter words have no candidate popup.
 - Type a complete verb base such as `force` to also see `forced`, `forcing`, and
   `forces`. The literal `force` remains first.
 - When normal completion finds nothing, a typo such as `forcng` can offer
@@ -35,8 +36,10 @@ English Booster uses the existing [English word list](en_dicts/en.dict.yaml) and
 [extended English word list](en_dicts/en_ext.dict.yaml). Its schema and learning
 database are separate from Pinyin's.
 
-The unchanged typed text is the default candidate, followed by completion
-suggestions. Ordinary Space typing therefore does not accept a guessed word:
+The candidate popup starts after three alphabetic letters; shorter input remains
+inline without a popup. Once shown, the unchanged typed text is the default
+candidate, followed by completion suggestions. Ordinary Space typing therefore
+does not accept a guessed word:
 typing `I` followed by Space produces `I `, and typing `comput` followed by Space
 preserves `comput `. Use Tab or a candidate number to request a completion.
 
@@ -55,11 +58,12 @@ verb base, including spelling changes and irregular verbs:
 | `study` | `studied`, `studying`, `studies` |
 | `stop` | `stopped`, `stopping`, `stops` |
 | `run` | `ran`, `running`, `runs` |
-| `go` | `went`, `gone`, `going`, `goes` |
 
 The typed word remains first, so Space still commits `force ` rather than a
 guessed form. Use Tab or a candidate number to choose a form; longer candidate
 lists use the same five-item pages. Title-case and uppercase input work too.
+The three-letter popup threshold also applies to verb forms: short bases such
+as `go` and `be` do not open a candidate menu.
 Your learned completion preferences take priority over unselected verb forms.
 Selecting a form updates the existing `english_booster.userdb/`, not a separate
 learning database.
@@ -86,6 +90,11 @@ alphabetic input of 4–24 characters. Normal completions are not mixed with
 corrections, and the unchanged input always remains first. Space/Enter preserve
 your spelling by default; use Tab, a candidate number, or navigation to choose
 a correction. Selecting it learns the correct spelling, not a misspelled alias.
+
+Adjacent-letter swaps and missing doubled letters are checked before other
+edits, so `doted` offers `dotted` and `runing` offers `running` before the four
+suggestion slots fill with substitutions. This priority rule applies to all
+words, not a hardcoded exception list.
 
 When corrections are available, the literal row displays a `*` hint in the
 candidate menu, for example `comupter *`. This is display-only: the mark is never

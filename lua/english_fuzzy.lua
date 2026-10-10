@@ -10,10 +10,14 @@ local function edits(word, visit)
       return visit(code)
     end
   end
-  -- Prefer swapped or wrong letters before missing or extra letters.
+  -- Prefer adjacent swaps, then missing doubled letters, before other edits.
   for i = 1, #word - 1 do
     if try(word:sub(1, i - 1) .. word:sub(i + 1, i + 1)
         .. word:sub(i, i) .. word:sub(i + 2)) then return end
+  end
+  -- Try duplicated letters before substitutions can fill the suggestion limit.
+  for i = 1, #word do
+    if try(word:sub(1, i) .. word:sub(i, i) .. word:sub(i + 1)) then return end
   end
   for i = 1, #word do
     for j = 1, #alphabet do

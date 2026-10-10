@@ -103,6 +103,28 @@ class EnglishFuzzyTests(unittest.TestCase):
             assert(#run("rciive", {receive = {"receive"}}) == 0)
         ''')
 
+    def test_missing_doubled_letters_precede_substitutions(self):
+        self.run_lua('''
+            local words = {}
+            for _, word in ipairs({"dotted", "coted", "noted", "toted", "voted",
+                                   "running", "tuning", "ruling", "pruning", "ruining"}) do
+                words[word] = {word}
+            end
+            for input, correct in pairs({doted = "dotted", Doted = "dotted",
+                                         DOTED = "dotted", runing = "running"}) do
+                local result = run(input, words)
+                assert(#result == 4 and result[1].text == correct, input)
+                assert(result[1].code == correct .. " ")
+                local count = 0
+                for _, candidate in ipairs(result) do
+                    if candidate.text == correct then count = count + 1 end
+                end
+                assert(count == 1, "Priority lookup must not duplicate later insertion matches")
+            end
+            local result = run("abde", {adbe = {"adbe"}, abbde = {"abbde"}})
+            assert(result[1].text == "adbe", "Adjacent swaps retain first priority")
+        ''')
+
     def test_normal_and_personal_candidates_are_untouched(self):
         self.run_lua('''
             for _, text in ipairs({"computer", "comupter", "comupterword"}) do
@@ -110,6 +132,25 @@ class EnglishFuzzyTests(unittest.TestCase):
                 local result, env = run("comupter", {computer = {"computer"}}, {original})
                 assert(#result == 1 and result[1] == original)
                 assert(queries == 0 and env.lookup == nil)
+            end
+        ''')
+
+    def test_candidate_popup_starts_at_three_letters(self):
+        self.run_lua('''
+            for input, expected in pairs({I = 0, a = 0, ab = 0, AB = 0, Co = 0,
+                                          go = 0, run = 1, Run = 1, RUN = 1}) do
+                local output = {}
+                local candidate = {type = "table", text = input, comment = ""}
+                yield = function(value) output[#output + 1] = value end
+                local translation = {iter = function()
+                    local pending = true
+                    return function()
+                        if pending then pending = false; return candidate end
+                    end
+                end}
+                case_filter(translation, {engine = {context = {input = input}}})
+                assert(#output == expected, input)
+                if expected > 0 then assert(output[1] == candidate) end
             end
         ''')
 
