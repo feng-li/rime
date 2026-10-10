@@ -1,0 +1,37 @@
+# Exact, case-sensitive command names. Edit this list, then redeploy Rime.
+# Avoid ordinary words such as make/find/cat unless you want them to switch modes.
+command_mode:
+  commands:
+    - git
+    - emacs
+    - latexmk
+    - ssh
+    - mosh
+    - tmux
+    - sudo
+    - apt
+    - python
+    - pip
+    - conda
+    - cmake
+    - gcc
+    - clang
+    - pdflatex
+    - xelatex
+    - lualatex
+    - vim
+    - nvim
+    - docker
+    - podman
+    - npm
+    - npx
+    - rsync
+    - scp
+    - curl
+    - wget
+    - systemctl
+    - journalctl
+    - headscale
+    - tailscale
+    - ffmpeg
+    - rg

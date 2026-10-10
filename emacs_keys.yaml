@@ -1,0 +1,25 @@
+# Rime key names, separated by spaces. Each entry is a PREFIX, not a command.
+# Proper prefixes are included automatically: "Control+x r" also enables C-x.
+# Edit this list and redeploy; [] disables passthrough, including the C-g reset.
+emacs_keys:
+  prefixes:
+    - Control+x
+    - Control+c
+    - Escape
+    - Control+x Return
+    - Control+x at
+    - Control+x a
+    - Control+x a i
+    - Control+x n
+    - Control+x r
+    - Control+x t
+    - Control+x v
+    - Control+x 4
+    - Control+x 5
+    - Control+x 6
+    - Control+x 8
+    - Control+x Control+k
+    - Control+x Escape
+    - Escape Escape
+    - Escape g
+    - Escape s
