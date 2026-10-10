@@ -2,12 +2,27 @@
 
 Personal [Rime Ice](https://github.com/iDvel/rime-ice)-based configuration with
 Pinyin, plain English input, and a dedicated English Booster schema. English
-Booster predicts completions for the word being typed and remembers selected
-dictionary words to personalize later suggestions.
+Booster predicts completions for the word being typed, remembers selected
+dictionary words, and lets you explicitly save new personal vocabulary.
 
-This is word completion, not contextual next-word prediction. Spell correction,
-sentence prediction, and automatic learning of entirely new words are not
-implemented.
+This is word completion, not contextual next-word prediction. Spell correction
+and sentence prediction are not implemented. New words are saved only when you
+explicitly request it, not automatically during ordinary typing.
+
+## Quick usage
+
+- Select **English Booster** with Ctrl + backtick, or tap Shift to cycle through
+  Pinyin, plain English, and English Booster.
+- Type normally: Space preserves the typed word by default. Use Tab or a visible
+  candidate number (1–5) when you want a completion.
+- To remember a new alphabetic word, type it and press **Ctrl+Enter before Space
+  or punctuation**. This commits and saves the literal word, without adding a
+  space or newline. It is available for completion immediately and after restarts.
+
+For example, type `mynewterm`, press Ctrl+Enter, then later type `mynew` and
+press Tab to complete the saved word. Ordinary Space/Enter do not save unknown
+words. See [Personal English dictionary](#personal-english-dictionary) for
+storage, backups, and importing a word list.
 
 ## English completion
 
@@ -32,6 +47,7 @@ uses ASCII punctuation and shows up to five candidates per page.
 | Tab | Accept a completion without a trailing space; from the unchanged-text row, choose the next suggestion when available. |
 | 1–5 | Confirm the matching candidate on the displayed page without inserting the digit. |
 | Enter | Commit the literal input without accepting an unconfirmed completion. |
+| Ctrl+Enter | Save the literal typed English word and commit it without a trailing space or newline. |
 | Ctrl+n / Ctrl+p | Navigate the candidate list using Down / Up. |
 | Ctrl+Shift+n / Ctrl+Shift+p | Move to the next / previous candidate page. |
 
@@ -72,7 +88,7 @@ The feature uses these source files:
 | --- | --- |
 | [english_booster.schema.yaml](english_booster.schema.yaml) | Dedicated English completion schema and input keys. |
 | [english_booster.dict.yaml](english_booster.dict.yaml) | Imports the existing English dictionaries. |
-| [lua/english_booster.lua](lua/english_booster.lua) | Natural typing, capitalization, and numbered candidate selection. |
+| [lua/english_booster.lua](lua/english_booster.lua) | Natural typing, capitalization, numbered selection, and explicit word learning. |
 | [lua/input_mode_cycle.lua](lua/input_mode_cycle.lua) | Shared three-way Shift cycle. |
 | `default.custom.yaml` | Adds English Booster to the schema list and disables the old binary Shift toggle. |
 | `rime_ice.custom.yaml` | Enables the shared Shift processor in Pinyin. |
@@ -158,13 +174,33 @@ Git does not transfer learned preferences to another machine. Use Rime's user
 data synchronization or back up the database separately; stop the Rime frontend
 before making a filesystem copy of a live database.
 
-### Add new vocabulary
+### Save unknown words explicitly (Ctrl+Enter)
 
-The current schema learns preferences for existing dictionary candidates, not
-every word typed literally. In particular, committing an unknown word with
-Space or Enter does not automatically add it to the learned dictionary.
+Unknown words are saved explicitly, never just because they were typed. In
+English Booster:
 
-To add your own terms explicitly:
+1. Type the complete new word, for example `mynewterm`.
+2. Press **Ctrl+Enter** before Space or punctuation. Rime commits exactly the
+   typed word and saves it, even if a different completion was highlighted.
+   No space or newline is added.
+3. Later, type a prefix such as `mynew` and use Tab or a candidate number to
+   accept the saved word.
+
+The word is written directly to `english_booster.userdb/`, so it is immediately
+available and survives restarts without a dictionary edit or another deployment.
+Its original spelling is retained, with lowercase, title-case, and uppercase
+lookup forms for completion.
+
+This shortcut saves alphabetic words (`A`-`Z` and `a`-`z`) while they are still
+being composed. It does not read previously committed application text, and it
+does not save emails, URLs, or punctuation-containing strings. Plain English
+mode and Pinyin do not use this shortcut. Space and ordinary Enter still do
+not add unknown words, avoiding automatic collection of drafts and typos.
+Avoid using Ctrl+Enter on sensitive words you do not want stored locally.
+
+### Import a personal word list
+
+For predefined or bulk vocabulary, you can also use a source dictionary:
 
 1. Create `en_dicts/english_personal.dict.yaml` with a dictionary header and
    tab-separated text and spelling entries:
@@ -199,13 +235,7 @@ schema imports it.
 
 ## Keep configuration separate from learned data
 
-Track the English schema, dictionary wrapper, Lua helpers, and any overrides you
-want to share. Because `.custom.yaml` files are ignored by default, explicitly
-track the three overrides if they should travel with this repository:
+- Track the English schema, dictionary wrapper, Lua helpers, and any overrides you
+want to share. 
 
-```sh
-git add -f default.custom.yaml rime_ice.custom.yaml ibus_rime.custom.yaml
-```
-
-Keep `build/`, `sync/`, `*.userdb/`, `user.yaml`, and `installation.yaml` out of Git.
-They contain generated data, machine-specific state, or personal learning data.
+- Keep `build/`, `sync/`, `*.userdb/`, `user.yaml`, and `installation.yaml` out of Git. They contain generated data, machine-specific state, or personal learning data.

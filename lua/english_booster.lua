@@ -1,6 +1,54 @@
 -- Only loaded by the dedicated English Booster schema.
+local function save_word(input, env)
+  if not env.memory then
+    env.memory = Memory(env.engine, env.engine.schema)
+  end
+  local memory = env.memory
+  if not memory:start_session() then
+    return false
+  end
+  -- Table user-dictionary lookup uses the literal spelling, not speller algebra.
+  -- Index each case form so newly saved words also complete from capitalized
+  -- prefixes; retain the original text (including names and internal capitals).
+  local codes = {
+    input, input:lower(), input:lower():gsub("^%l", string.upper), input:upper(),
+  }
+  local seen = {}
+  for _, code in ipairs(codes) do
+    if not seen[code] then
+      seen[code] = true
+      local entry = DictEntry()
+      entry.text = input
+      entry.custom_code = code .. " " -- Required user-dictionary word boundary.
+      if not memory:update_userdict(entry, 1, "") then
+        memory:discard_session()
+        return false
+      end
+    end
+  end
+  return memory:finish_session()
+end
+
 local function processor(key, env)
   local context = env.engine.context
+  if not key:release() and key.keycode == 0xff0d and key:ctrl()
+      and not key:shift() and not key:alt() and not key:super()
+      and not context:get_option("ascii_mode") and context:is_composing()
+      and context.input:match("^[A-Za-z]+$") then
+    local input = context.input
+    local ok, saved = pcall(save_word, input, env)
+    if not ok or not saved then
+      if env.memory then
+        pcall(function() env.memory:discard_session() end)
+      end
+      -- Never log the word itself: personal vocabulary may be sensitive.
+      log.warning("English Booster: could not save the personal word")
+    end
+    -- Explicit learning is about the typed word, not a highlighted completion.
+    context:clear()
+    env.engine:commit_text(input)
+    return 1 -- kAccepted: no newline and no trailing space.
+  end
   if not key:release() and (key:ctrl() or key:alt() or key:super())
       and key.keycode >= 0x30 and key.keycode <= 0x39 then
     return 0 -- kRejected: modified digits belong to application shortcuts.
@@ -71,4 +119,12 @@ local function case_filter(translation, env)
   end
 end
 
-return {processor = processor, case_filter = case_filter}
+local function fini(env)
+  if env.memory then
+    env.memory:disconnect()
+    env.memory = nil
+    collectgarbage("collect")
+  end
+end
+
+return {processor = {func = processor, fini = fini}, case_filter = case_filter}

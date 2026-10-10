@@ -2,8 +2,8 @@
 schema:
   schema_id: english_booster
   name: English Booster
-  version: "2026-10-10.4"
-  description: Natural English typing with opt-in completion and separate learning.
+  version: "2026-10-10.5"
+  description: Natural English typing, opt-in completion, and explicit personal words.
 
 switches:
   - name: ascii_mode
