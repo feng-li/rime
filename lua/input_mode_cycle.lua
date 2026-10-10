@@ -1,4 +1,4 @@
--- Tap either Shift: Pinyin -> plain English -> English Booster -> Pinyin.
+-- Tap either Shift: Pinyin -> plain English -> Booster -> plain English -> Pinyin.
 -- A Shift used with any other key is only a modifier, never a mode switch.
 -- Exact command names + Space/Enter enter the same plain-English mode.
 -- Configured Emacs prefixes and their command key bypass all IME processors.
@@ -164,14 +164,12 @@ function cycle.func(key, env)
     context:commit()
   end
 
-  if schema_id == "english_booster" then
-    engine:apply_schema(Schema("rime_ice"))
-    context:set_option("ascii_mode", false)
-  elseif was_ascii then
-    engine:apply_schema(Schema("english_booster"))
-    context:set_option("ascii_mode", false)
-  else
+  if not was_ascii then
+    -- Each predictive schema has its own plain-English step before leaving it.
     context:set_option("ascii_mode", true)
+  else
+    engine:apply_schema(Schema(schema_id == "english_booster" and "rime_ice" or "english_booster"))
+    engine.context:set_option("ascii_mode", false)
   end
   return 1 -- kAccepted: do not let the old two-way toggle run as well.
 end

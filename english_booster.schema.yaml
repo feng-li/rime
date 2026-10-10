@@ -2,7 +2,7 @@
 schema:
   schema_id: english_booster
   name: English Booster
-  version: "2026-10-10.12"
+  version: "2026-10-10.13"
   description: Natural English typing, verb forms, optional spelling suggestions, and personal words.
   dependencies:
     - english_booster_inflections

@@ -274,7 +274,8 @@ class EnglishFuzzyTests(unittest.TestCase):
             assert(not env.engine.context.ascii_mode, "Shift in command must not cycle")
             assert(mode_cycle.func(event(0xffe1), env) == 2)
             assert(mode_cycle.func(event(0xffe1, {release = true, shift = true}), env) == 1)
-            assert(env.engine.schema.schema_id == "rime_ice", "Standalone Shift still cycles")
+            assert(env.engine.schema.schema_id == "english_booster"
+                   and env.engine.context.ascii_mode, "Standalone Shift enters plain English")
             for _, code in ipairs({103, 0xff1b}) do
                 env = prefix_env("rime_ice", "nihao")
                 assert(mode_cycle.func(event(code, {ctrl = code == 103}), env) == 0)
@@ -311,6 +312,45 @@ class EnglishFuzzyTests(unittest.TestCase):
                 assert(mode_cycle.func(key, env) == 0, "Custom nested prefixes are configurable")
             end
             assert(mode_cycle.func(event(104), env) == 2)
+        ''')
+
+    def test_four_step_shift_cycle_from_every_starting_state(self):
+        self.prefix_mocks()
+        self.run_lua('''
+            local states = {{"rime_ice", false}, {"rime_ice", true},
+                            {"english_booster", false}, {"english_booster", true}}
+            for start, state in ipairs(states) do
+                local env = prefix_env(state[1], "", state[2])
+                for step = 1, 40 do
+                    local code = step % 2 == 0 and 0xffe1 or 0xffe2
+                    assert(mode_cycle.func(event(code), env) == 2)
+                    assert(mode_cycle.func(event(code, {release = true, shift = true}), env) == 1)
+                    local expected = states[(start + step - 1) % 4 + 1]
+                    assert(env.engine.schema.schema_id == expected[1])
+                    assert(env.engine.context.ascii_mode == expected[2])
+                    assert(#env.engine.commits == 0)
+                    -- Extra releases do not advance the cycle.
+                    assert(mode_cycle.func(event(code, {release = true}), env) == 2)
+                    assert(env.engine.schema.schema_id == expected[1])
+                    assert(env.engine.context.ascii_mode == expected[2])
+                end
+            end
+        ''')
+
+    def test_shift_enters_plain_english_preserving_unfinished_input(self):
+        self.prefix_mocks()
+        self.run_lua('''
+            for _, pair in ipairs({{"rime_ice", "nihao"}, {"english_booster", "comput"}}) do
+                local env = prefix_env(pair[1], pair[2])
+                mode_cycle.func(event(0xffe1), env)
+                assert(mode_cycle.func(event(0xffe1, {release = true, shift = true}), env) == 1)
+                assert(env.engine.context.preserved and env.engine.commits[1] == pair[2])
+                assert(env.engine.schema.schema_id == pair[1] and env.engine.context.ascii_mode)
+                mode_cycle.func(event(0xffe2), env)
+                assert(mode_cycle.func(event(0xffe2, {release = true, shift = true}), env) == 1)
+                assert(env.engine.schema.schema_id == (pair[1] == "rime_ice" and "english_booster" or "rime_ice"))
+                assert(not env.engine.context.ascii_mode and #env.engine.commits == 1)
+            end
         ''')
 
     def test_single_edits_and_correct_learning_codes(self):

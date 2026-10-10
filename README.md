@@ -13,7 +13,7 @@ request it, not automatically during ordinary typing.
 ## Quick usage
 
 - Select **English Booster** with Ctrl + backtick, or tap Shift to cycle through
-  Pinyin, plain English, and English Booster.
+  Pinyin → plain English → English Booster → plain English → Pinyin.
 - Type normally: Space preserves the typed word by default. Use Tab or a visible
   candidate number (1–5) when you want a completion. The popup starts at the third
   alphabetic letter; one- and two-letter words have no candidate popup.
@@ -128,11 +128,16 @@ type `this`, press Enter to commit it, then type `1`. Otherwise, when candidate 
 is displayed, `this` followed by `1` confirms that candidate. Ctrl, Alt, and Super
 number shortcuts are passed to the application rather than selecting candidates.
 
-### Three input modes
+### Shift cycle (four steps)
 
 Tap either Shift key alone to cycle:
 
-Pinyin → plain English → English Booster → Pinyin
+Pinyin → plain English → English Booster → plain English → Pinyin
+
+Plain English appears twice: once with prediction disabled in the Pinyin schema,
+and once with prediction disabled in the English Booster schema. From Booster,
+the first Shift disables prediction; the next Shift returns to Pinyin. These are
+still three input behaviors, with no additional schema or hidden cycle counter.
 
 Shift used with letters or application shortcuts remains a normal modifier.
 Switching with unfinished input retains already selected text and commits the
@@ -150,6 +155,8 @@ Space adds one space. Enter confirms the command without a newline; another
 Enter, now in plain English, is passed to the application normally. The switch
 does not submit a command or otherwise send an extra keypress. Plain English
 remains active until you switch modes; tapping Shift returns to English Booster.
+Automatic command switching continues to use the plain-English step immediately
+before Booster, regardless of which predictive schema recognized the command.
 
 Names are case-sensitive and matched against the entire composing input, not
 prefixes or surrounding application text. `gi`, `emac`, and `Git` do not trigger
