@@ -1,0 +1,3 @@
+# Show typed text in the application, keeping the popup for candidates only.
+patch:
+  "style/inline_preedit": true
