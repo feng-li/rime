@@ -1,10 +1,11 @@
 # Reuse the existing Rime Ice English word lists without changing their schema.
 ---
 name: english_booster
-version: "2026-10-10.1"
+version: "2026-10-10.2"
 sort: by_weight
 use_preset_vocabulary: false
 import_tables:
   - en_dicts/en_ext
   - en_dicts/en
+  - en_dicts/english_inflection_words
 ...

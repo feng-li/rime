@@ -2,8 +2,8 @@
 
 Personal [Rime Ice](https://github.com/iDvel/rime-ice)-based configuration with
 Pinyin, plain English input, and a dedicated English Booster schema. English
-Booster predicts completions for the word being typed, remembers selected
-dictionary words, and lets you explicitly save new personal vocabulary.
+Booster predicts completions for the word being typed, offers verb forms,
+remembers selected dictionary words, and lets you explicitly save new vocabulary.
 
 This is word completion, not contextual next-word prediction. Spell correction
 and sentence prediction are not implemented. New words are saved only when you
@@ -15,6 +15,8 @@ explicitly request it, not automatically during ordinary typing.
   Pinyin, plain English, and English Booster.
 - Type normally: Space preserves the typed word by default. Use Tab or a visible
   candidate number (1–5) when you want a completion.
+- Type a complete verb base such as `force` to also see `forced`, `forcing`, and
+  `forces`. The literal `force` remains first.
 - To remember a new alphabetic word, type it and press **Ctrl+Enter before Space
   or punctuation**. This commits and saves the literal word, without adding a
   space or newline. It is available for completion immediately and after restarts.
@@ -38,6 +40,38 @@ preserves `comput `. Use Tab or a candidate number to request a completion.
 Capitalization is preserved for literal input; title-case and uppercase prefixes
 also produce appropriately capitalized completion candidates. English Booster
 uses ASCII punctuation and shows up to five candidates per page.
+
+### Verb forms
+
+A bundled inflection dictionary offers related forms when you type a complete
+verb base, including spelling changes and irregular verbs:
+
+| Typed base | Additional candidates |
+| --- | --- |
+| `force` | `forced`, `forcing`, `forces` |
+| `study` | `studied`, `studying`, `studies` |
+| `stop` | `stopped`, `stopping`, `stops` |
+| `run` | `ran`, `running`, `runs` |
+| `go` | `went`, `gone`, `going`, `goes` |
+
+The typed word remains first, so Space still commits `force ` rather than a
+guessed form. Use Tab or a candidate number to choose a form; longer candidate
+lists use the same five-item pages. Title-case and uppercase input work too.
+Your learned completion preferences take priority over unselected verb forms.
+Selecting a form updates the existing `english_booster.userdb/`, not a separate
+learning database.
+
+The data covers 4,043 existing verb bases and 12,422 base/form pairs, with 8,204
+additional attested spellings for ordinary prefix completion. It comes from
+[AGID 2016.01.19](https://wordlist.aspell.net/agid-readme/); uncertain entries,
+unconfirmed verb classifications, and rare level-2 variants are excluded.
+The verb lookup activates only at a complete listed base, not every short
+prefix. Neither Hunspell nor Python is needed while typing.
+
+This is a word-form lookup, not context-aware grammar correction. It does not
+infer the intended meaning of ambiguous verbs or automatically conjugate a new
+personal word saved with Ctrl+Enter. Such words retain ordinary completion until
+they are included in the bundled inflection data.
 
 ### Input keys
 
@@ -88,7 +122,12 @@ The feature uses these source files:
 | --- | --- |
 | [english_booster.schema.yaml](english_booster.schema.yaml) | Dedicated English completion schema and input keys. |
 | [english_booster.dict.yaml](english_booster.dict.yaml) | Imports the existing English dictionaries. |
+| [english_booster.inflections.dict.yaml](english_booster.inflections.dict.yaml) | Wrapper for the bundled base/form table. |
+| [english_booster_inflections.schema.yaml](english_booster_inflections.schema.yaml) | Build-only dependency that compiles the inflection table; not a fourth input mode. |
+| [en_dicts/english_inflections.dict.yaml](en_dicts/english_inflections.dict.yaml) | Generated verb forms indexed by their complete base. |
+| [en_dicts/english_inflection_words.dict.yaml](en_dicts/english_inflection_words.dict.yaml) | Additional attested spellings for ordinary completion. |
 | [lua/english_booster.lua](lua/english_booster.lua) | Natural typing, capitalization, numbered selection, and explicit word learning. |
+| [lua/english_inflections.lua](lua/english_inflections.lua) | Read-only verb lookup with safe learning through the existing English user dictionary. |
 | [lua/input_mode_cycle.lua](lua/input_mode_cycle.lua) | Shared three-way Shift cycle. |
 | `default.custom.yaml` | Adds English Booster to the schema list and disables the old binary Shift toggle. |
 | `rime_ice.custom.yaml` | Enables the shared Shift processor in Pinyin. |
@@ -224,6 +263,7 @@ For predefined or bulk vocabulary, you can also use a source dictionary:
      - en_dicts/english_personal
      - en_dicts/en_ext
      - en_dicts/en
+     - en_dicts/english_inflection_words
    ```
 
 3. Redeploy Rime, then select the new term as a candidate. Subsequent selections
@@ -232,6 +272,26 @@ For predefined or bulk vocabulary, you can also use a source dictionary:
 The personal word-list file is not created by default. If it contains private
 vocabulary, keep it out of Git and make sure it exists on each machine whose
 schema imports it.
+
+### Regenerate the bundled verb data
+
+The generated dictionaries are included in Git; ordinary setup does not require
+downloading data or running a generator. For maintenance, download the pinned
+[AGID archive](https://sourceforge.net/projects/wordlist/files/AGID/2016.01.19/agid-2016.01.19.tar.gz/download),
+extract `infl.txt`, then run from this repository:
+
+```sh
+python3 others/script/build_english_inflections.py /path/to/agid-2016.01.19/infl.txt \
+  --output en_dicts/english_inflections.dict.yaml \
+  --words-output en_dicts/english_inflection_words.dict.yaml
+python3 -B -m unittest discover -s others/script/tests -p test_english_inflections.py
+```
+
+The standard-library-only generator checks the source SHA256 and keeps only
+confirmed alphabetic verbs whose bases appear in the original English word
+lists. Redeploy Rime after regenerating the dictionaries. Required attribution,
+source-format documentation, and license notices are preserved in
+[AGID-README.txt](others/english_inflections/AGID-README.txt).
 
 ## Keep configuration separate from learned data
 

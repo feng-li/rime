@@ -11,6 +11,10 @@ user.yaml
 *.custom.yaml
 !others/**/*.custom.yaml
 
+# Keep this feature's regression tests despite a user's global tests/ ignore.
+!others/script/tests/
+!others/script/tests/test_english_inflections.py
+
 custom_phrase_double.txt
 others/script/scel2txt/out/*
 others/script/scel2txt/scel/*

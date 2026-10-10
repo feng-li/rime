@@ -96,6 +96,7 @@ local function case_filter(translation, env)
   local upper = #input > 1 and input:match("^[A-Z]+$")
   local title = input:match("^[A-Z][a-z]*$")
   local literal_first = input:match("^[A-Za-z]+$")
+  local pending = {}
   for candidate in translation:iter() do
     local text = candidate.text
     if upper then
@@ -103,19 +104,37 @@ local function case_filter(translation, env)
     elseif title then
       text = text:gsub("^%l", string.upper)
     end
-    if literal_first then
-      literal_first = false
-      -- Keep a genuine exact match when available so it can still be learned.
-      -- Otherwise offer the literal text before any predicted completion.
-      if text ~= input then
-        yield(Candidate("literal", candidate.start, candidate._end, input, ""))
-      end
-    end
+    local converted = candidate
     if text ~= candidate.text then
-      yield(ShadowCandidate(candidate, candidate.type, text, candidate.comment))
-    else
-      yield(candidate)
+      converted = ShadowCandidate(candidate, candidate.type, text, candidate.comment)
     end
+    if literal_first then
+      if text == input then
+        -- Keep the genuine base word first even when inflections rank higher.
+        -- Ordinary Space can then still learn a real dictionary entry.
+        yield(converted)
+        for _, saved in ipairs(pending) do yield(saved) end
+        pending = {}
+        literal_first = false
+      elseif candidate.type == "completion" then
+        -- Exact matches precede prefix completions. If none matched the input,
+        -- retain its literal spelling before the buffered choices and guesses.
+        yield(Candidate("literal", candidate.start, candidate._end, input, ""))
+        for _, saved in ipairs(pending) do yield(saved) end
+        pending = {}
+        yield(converted)
+        literal_first = false
+      else
+        pending[#pending + 1] = converted
+      end
+    else
+      yield(converted)
+    end
+  end
+  if literal_first and #pending > 0 then
+    local first = pending[1]
+    yield(Candidate("literal", first.start, first._end, input, ""))
+    for _, saved in ipairs(pending) do yield(saved) end
   end
 end
 

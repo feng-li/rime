@@ -1,0 +1,15 @@
+# Build-only dependency; not an additional selectable input mode.
+schema:
+  schema_id: english_booster_inflections
+  name: English Booster Inflection Data
+  version: "2026-10-10.1"
+
+translator:
+  dictionary: english_booster.inflections
+  enable_user_dict: false
+
+speller:
+  algebra:
+    - derive/^.+$/\L$0/
+    - derive/^./\U$0/
+    - derive/^.+$/\U$0/
