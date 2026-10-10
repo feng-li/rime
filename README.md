@@ -2,12 +2,13 @@
 
 Personal [Rime Ice](https://github.com/iDvel/rime-ice)-based configuration with
 Pinyin, plain English input, and a dedicated English Booster schema. English
-Booster predicts completions for the word being typed, offers verb forms,
-remembers selected dictionary words, and lets you explicitly save new vocabulary.
+Booster predicts completions for the word being typed, offers verb forms and
+spelling suggestions, remembers selected dictionary words, and lets you explicitly
+save new vocabulary.
 
-This is word completion, not contextual next-word prediction. Spell correction
-and sentence prediction are not implemented. New words are saved only when you
-explicitly request it, not automatically during ordinary typing.
+This is word completion with optional spelling suggestions, not contextual
+next-word or sentence prediction. Unknown words are saved only when you explicitly
+request it, not automatically during ordinary typing.
 
 ## Quick usage
 
@@ -17,6 +18,8 @@ explicitly request it, not automatically during ordinary typing.
   candidate number (1–5) when you want a completion.
 - Type a complete verb base such as `force` to also see `forced`, `forcing`, and
   `forces`. The literal `force` remains first.
+- When normal completion finds nothing, a typo such as `forcng` can offer
+  `forcing`. Your typed spelling remains first; correction is never automatic.
 - To remember a new alphabetic word, type it and press **Ctrl+Enter before Space
   or punctuation**. This commits and saves the literal word, without adding a
   space or newline. It is available for completion immediately and after restarts.
@@ -73,6 +76,29 @@ infer the intended meaning of ambiguous verbs or automatically conjugate a new
 personal word saved with Ctrl+Enter. Such words retain ordinary completion until
 they are included in the bundled inflection data.
 
+### Spelling suggestions
+
+When no normal dictionary or personal-word candidates exist, a small fuzzy
+fallback offers up to four spelling suggestions: for example, `forcng` →
+`forcing`, `comupter` → `computer`, and `recieve` → `receive`.
+It handles one inserted, deleted, substituted, or adjacent-swapped letter in
+alphabetic input of 4–24 characters. Normal completions are not mixed with
+corrections, and the unchanged input always remains first. Space/Enter preserve
+your spelling by default; use Tab, a candidate number, or navigation to choose
+a correction. Selecting it learns the correct spelling, not a misspelled alias.
+
+When corrections are available, the literal row displays a `*` hint in the
+candidate menu, for example `comupter *`. This is display-only: the mark is never
+inserted into your text or saved in the user dictionary. Recognized words,
+ordinary prefixes, and saved personal words are not flagged; unknown words with
+no one-edit correction are not flagged either.
+
+This uses the bundled English dictionary, including the added verb spellings;
+there is no Hunspell dependency or extra word list. It is not a full spellchecker:
+multiple errors and corrections to unknown personal words are not supported.
+Ctrl+Enter still explicitly saves your literal input, even when a correction is
+offered.
+
 ### Input keys
 
 | Key | Behavior in English Booster |
@@ -128,6 +154,7 @@ The feature uses these source files:
 | [en_dicts/english_inflection_words.dict.yaml](en_dicts/english_inflection_words.dict.yaml) | Additional attested spellings for ordinary completion. |
 | [lua/english_booster.lua](lua/english_booster.lua) | Natural typing, capitalization, numbered selection, and explicit word learning. |
 | [lua/english_inflections.lua](lua/english_inflections.lua) | Read-only verb lookup with safe learning through the existing English user dictionary. |
+| [lua/english_fuzzy.lua](lua/english_fuzzy.lua) | Bounded one-edit spelling fallback, only when normal completion finds nothing. |
 | [lua/input_mode_cycle.lua](lua/input_mode_cycle.lua) | Shared three-way Shift cycle. |
 | `default.custom.yaml` | Adds English Booster to the schema list and disables the old binary Shift toggle. |
 | `rime_ice.custom.yaml` | Enables the shared Shift processor in Pinyin. |
@@ -284,7 +311,7 @@ extract `infl.txt`, then run from this repository:
 python3 others/script/build_english_inflections.py /path/to/agid-2016.01.19/infl.txt \
   --output en_dicts/english_inflections.dict.yaml \
   --words-output en_dicts/english_inflection_words.dict.yaml
-python3 -B -m unittest discover -s others/script/tests -p test_english_inflections.py
+python3 -B -m unittest discover -s others/script/tests -p 'test_english_*.py'
 ```
 
 The standard-library-only generator checks the source SHA256 and keeps only
@@ -292,6 +319,9 @@ confirmed alphabetic verbs whose bases appear in the original English word
 lists. Redeploy Rime after regenerating the dictionaries. Required attribution,
 source-format documentation, and license notices are preserved in
 [AGID-README.txt](others/english_inflections/AGID-README.txt).
+
+The offline tests also cover the fuzzy fallback using the installed Lua 5.4
+runtime. They do not open or modify personal learning databases.
 
 ## Keep configuration separate from learned data
 

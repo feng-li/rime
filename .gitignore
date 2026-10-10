@@ -14,6 +14,7 @@ user.yaml
 # Keep this feature's regression tests despite a user's global tests/ ignore.
 !others/script/tests/
 !others/script/tests/test_english_inflections.py
+!others/script/tests/test_english_fuzzy.py
 
 custom_phrase_double.txt
 others/script/scel2txt/out/*

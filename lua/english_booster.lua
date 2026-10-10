@@ -133,7 +133,9 @@ local function case_filter(translation, env)
   end
   if literal_first and #pending > 0 then
     local first = pending[1]
-    yield(Candidate("literal", first.start, first._end, input, ""))
+    -- Candidate comments are display-only: never commit or learn the warning.
+    local comment = first.type == "spelling" and "*" or ""
+    yield(Candidate("literal", first.start, first._end, input, comment))
     for _, saved in ipairs(pending) do yield(saved) end
   end
 end

@@ -2,8 +2,8 @@
 schema:
   schema_id: english_booster
   name: English Booster
-  version: "2026-10-10.6"
-  description: Natural English typing, verb forms, opt-in completion, and personal words.
+  version: "2026-10-10.8"
+  description: Natural English typing, verb forms, optional spelling suggestions, and personal words.
   dependencies:
     - english_booster_inflections
 
@@ -38,6 +38,7 @@ engine:
     - lua_translator@*english_inflections
     - punct_translator
   filters:
+    - lua_filter@*english_fuzzy
     - lua_filter@*english_booster*case_filter
     - uniquifier
 
@@ -85,6 +86,14 @@ inflections:
   initial_quality: -0.75
   comment_format:
     - xform/^.+$//
+
+# Read-only spelling fallback; selected words learn through the main translator.
+fuzzy:
+  dictionary: english_booster
+  enable_user_dict: false
+  enable_sentence: false
+  enable_encoder: false
+  encode_commit_history: false
 
 punctuator:
   import_preset: default
