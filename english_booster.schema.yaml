@@ -2,8 +2,8 @@
 schema:
   schema_id: english_booster
   name: English Booster
-  version: "2026-10-10.13"
-  description: Natural English typing, verb forms, optional spelling suggestions, and personal words.
+  version: "2026-10-11.2"
+  description: Natural English typing, verb forms, synonyms, spelling suggestions, and personal words.
   dependencies:
     - english_booster_inflections
 
@@ -36,6 +36,7 @@ engine:
   translators:
     - table_translator
     - lua_translator@*english_inflections
+    - lua_translator@*english_synonyms
     - punct_translator
   filters:
     - lua_filter@*english_fuzzy
@@ -92,6 +93,17 @@ inflections:
   initial_quality: -0.75
   comment_format:
     - xform/^.+$//
+
+# Offline exact-word thesaurus. Lower priority than learned completions and
+# verb forms, but above ordinary static prefix completions. Set the limit to 0
+# to disable. Plain candidates deliberately do not train replacement aliases.
+synonyms:
+  # Local candidate tables are Git-ignored. Relative paths use the Rime user directory.
+  # Choose a table in english_booster.custom.yaml; empty/unreadable uses the fallback.
+  data_file: ""
+  fallback_file: en_dicts/wordnet_synonyms.lua
+  max_candidates: 3
+  initial_quality: -0.85
 
 # Read-only spelling fallback; selected words learn through the main translator.
 fuzzy:

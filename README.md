@@ -2,13 +2,13 @@
 
 Personal [Rime Ice](https://github.com/iDvel/rime-ice)-based configuration with
 Pinyin, plain English input, and a dedicated English Booster schema. English
-Booster predicts completions for the word being typed, offers verb forms and
-spelling suggestions, remembers selected dictionary words, and lets you explicitly
-save new vocabulary.
+Booster predicts completions for the word being typed, offers verb forms,
+synonyms, and spelling suggestions, remembers selected dictionary words, and
+lets you explicitly save new vocabulary.
 
-This is word completion with optional spelling suggestions, not contextual
-next-word or sentence prediction. Unknown words are saved only when you explicitly
-request it, not automatically during ordinary typing.
+This is word completion with optional thesaurus and spelling suggestions, not
+contextual next-word or sentence prediction. Unknown words are saved only when
+you explicitly request it, not automatically during ordinary typing.
 
 ## Quick usage
 
@@ -19,6 +19,9 @@ request it, not automatically during ordinary typing.
   alphabetic letter; one- and two-letter words have no candidate popup.
 - Type a complete verb base such as `force` to also see `forced`, `forcing`, and
   `forces`. The literal `force` remains first.
+- Type a complete listed word to see up to three synonyms marked `≈`.
+  Choose one explicitly with its candidate number
+  or Tab; Space still keeps `quick ` by default.
 - When normal completion finds nothing, a typo such as `forcng` can offer
   `forcing`. Your typed spelling remains first; correction is never automatic.
 - Type a listed command such as `git`, `emacs`, or `latexmk`, then Space or Enter
@@ -81,6 +84,281 @@ This is a word-form lookup, not context-aware grammar correction. It does not
 infer the intended meaning of ambiguous verbs or automatically conjugate a new
 personal word saved with Ctrl+Enter. Such words retain ordinary completion until
 they are included in the bundled inflection data.
+
+### Synonym suggestions
+
+Complete listed words can offer up to three offline thesaurus suggestions,
+marked `≈` in the candidate menu. With the cleaned local WordNet data, `quick`
+offers `fast` and `speedy`; `happy` offers `glad`. A local data override changes
+these choices. Title-case and uppercase input produce matching capitalization.
+
+Your typed word remains first. Space and Enter preserve it by default; a
+candidate number selects the displayed synonym, or use Tab/navigation as with
+ordinary completions. Learned completions and verb forms rank above synonyms;
+ordinary static prefix completions rank below them. The existing three-letter
+popup threshold, five-item pages, Shift cycle, and Chinese input are unchanged.
+
+Selecting a synonym commits only its word, without the `≈` label. Synonym
+selections do not update the personal dictionary or create replacement aliases:
+choosing a synonym for `quick` will never teach Rime to replace `quick` with it.
+Ctrl+Enter still saves the literal typed word, even with a synonym highlighted.
+
+The cleaned WordNet table covers 8,592 complete words and 17,363 synonym pairs.
+It is derived from [WordNet 3.0](https://wordnet.princeton.edu/), using same-synset,
+lowercase alphabetic words from the main English vocabulary plus explicitly
+reviewed formal terms. It picks one part of speech using whole-word usage counts,
+screens usage labels, and follows source sense/frequency order unless a core word
+has an explicit review policy. Screening occurs before the three-candidate cap.
+Broader related-word and antonym links are not followed. The generator and
+[license](others/english_synonyms/WordNet-LICENSE.txt) are included, but the two
+local candidate tables in `en_dicts/` are Git-ignored (see below). Once a table is
+installed, WordNet, Python, Hunspell, Qwen, and network access are not required
+while typing. A fresh checkout without either table has no synonym suggestions;
+ordinary English completion continues to work.
+
+This is dictionary lookup, not context-aware prediction. Words with several
+meanings may offer alternatives that do not fit your sentence. Not every word
+has a synonym in this restricted table, and personal words saved with Ctrl+Enter
+do not acquire synonyms automatically. Partial words and misspellings do not
+trigger synonym lookup; their ordinary completion/correction behavior remains.
+
+Set `synonyms/max_candidates` in `english_booster.schema.yaml` to `0` to disable,
+or `1`/`2` for a smaller menu, then redeploy. The maximum remains three. To
+rebuild the data from the pinned local WordNet 3.0 files:
+
+```sh
+python3 -B others/script/build_english_synonyms.py /usr/share/wordnet --patch | apply_patch
+python3 -B -m unittest discover -s others/script/tests -p 'test_english_*.py'
+```
+
+The generator verifies source SHA256 hashes and produces reproducible Lua data.
+Its `--patch` output writes the ignored `en_dicts/wordnet_synonyms.lua`, not a
+module under `lua/`.
+The Lua translator uses plain, non-learning candidates; it reads the selected
+Lua data table once per path per process, starts no process, and makes no network
+requests. Changes to a loaded table require redeployment.
+
+#### WordNet formal/general-writing cleanup
+
+The generator applies the same practical principles as the local Merriam-Webster
+cleanup: neutral vocabulary, removal of explicitly marked informal/archaic uses,
+and targeted review of core writing words. This is a **heuristic**, not a measured
+academic-corpus classification or exhaustive semantic certification.
+
+Its public [review policy](others/english_synonyms/wordnet_formal_policy.json) is
+independently WordNet-derived; no private Merriam-Webster dictionary text or
+synonym choices are imported. Reviewed alternatives must share an unmarked
+WordNet synset with the input word in its selected part of speech. For example,
+`important` offers `significant` and `crucial`, not `authoritative`; `support`
+offers `corroborate`, `substantiate`, and `confirm`; the unrelated wine-flavor
+alternative `robust` → `rich` is withheld.
+
+The parser reads WordNet's [usage-domain pointers and lexical scope](https://wordnet.princeton.edu/documentation/wndb5wn)
+and [usage pointer types](https://wordnet.princeton.edu/documentation/wninput5wn)
+only to screen register, never to expand synonyms. Topic/region/formal/plural
+domains are not blanket exclusions. When a coarse whole-synset tag has a gloss
+explicitly identifying just one informal variant, only that variant is screened:
+`plain` is not a reason to discard unmarked `plainly`/`evidently`, nor `whole` a
+reason to discard `wholly`/`entirely`. Words found only in quoted examples do not
+become usage labels. Compounds are excluded whole, not shortened into fragments.
+
+The original 8,672-word/17,628-pair table remains reproducible with `--raw`.
+Cleanup removes 381 original suggestions and introduces 116 unmarked,
+source-attested alternatives after screening before the cap; it is not merely
+deletion of the original top-three lists. The original table, removed/added pairs,
+all rejected candidate-pool pairs, input hashes, policy, and license are saved in
+`~/running/rime/wordnet-formal-20261011/` on this machine. Generated audit files
+stay outside Git.
+
+To regenerate with a fresh audit directory:
+
+```sh
+python3 -B others/script/build_english_synonyms.py /usr/share/wordnet \
+  --audit-dir ~/running/rime/wordnet-formal-next --patch | apply_patch
+```
+
+To restore the original unfiltered WordNet table:
+
+```sh
+python3 -B others/script/build_english_synonyms.py /usr/share/wordnet --raw --patch | apply_patch
+```
+
+Redeploy after changing a table that is currently in use. This cleanup updates
+the local WordNet fallback only; the active private Merriam-Webster override and its
+exports are unchanged. Ordinary Space/Enter, `≈`, personal-word learning, and
+Chinese input keep their existing behavior. WordNet's synonyms still differ
+from Merriam-Webster's and require attention to sentence meaning and grammar.
+
+#### Extract a local Merriam-Webster MDX
+
+[extract_mw_thesaurus.py](others/script/extract_mw_thesaurus.py) extracts the
+dedicated thesaurus section from the local **Merriam-Webster's Collegiate
+Dictionary and Thesaurus, 2015.mdx**. It does not replace WordNet in Rime or
+redeploy anything. The default input path is
+`~/.emacs.d/dict/sdcv/Merriam-Webster's Collegiate Dictionary and Thesaurus, 2015.mdx`
+(the directory is `dict`, not `dit`). You can also pass another MDX path as its
+first argument.
+
+Use Python 3.11 or newer with `mdict-utils` and `tqdm`. On this machine they are
+already installed in `~/.virtualenvs/lsp/`:
+
+```sh
+~/.virtualenvs/lsp/bin/python -B \
+  ~/.config/ibus/rime/others/script/extract_mw_thesaurus.py \
+  --output-dir ~/running/rime/mw2015-thesaurus \
+  --rime-lua
+```
+
+Choose a **new** output directory; existing directories are never overwritten.
+Private dictionary exports must stay outside this repository. A progress bar
+shows the scan, and output becomes visible only after successful extraction.
+The output directory is private (`0700`), with files readable only by you (`0600`).
+
+| Output | Contents |
+| --- | --- |
+| `thesaurus.jsonl` | Original entry keys, record indexes, sense definitions, parts of speech, and separately labeled synonyms, related words, near antonyms, antonyms, and phrases. |
+| `synonyms.json` | Case-folded headword → all direct synonyms, deduplicated in source order; self-matches removed. |
+| `aliases.json` | MDX redirects, kept separate rather than assigning base-word synonyms to derived forms. |
+| `manifest.json` | Source path/SHA256, source and reader versions, extractor SHA256/options, and extraction counts. |
+| `english_synonyms_data.lua` | Optional `--rime-lua` export: alphabetic words suitable for the existing Lua translator, retaining all eligible choices for later selection/ranking. Not installed automatically. |
+
+Hyphens, multiword phrases, accents, and explicitly marked spelling variants
+remain in the JSON. Usage annotations and sense superscripts are not candidate
+words. Parenthesized particles, such as `snuff (out)`, stay attached to the
+expression: the Lua export excludes the whole phrase instead of leaking the
+bare word `snuff`. Only lists explicitly labeled **synonyms** populate the flat map; the
+other categories are never merged into it. The grouped JSON retains meanings
+and parts of speech; the flat map combines them and is not context-aware.
+
+By default, dictionary-only Synonyms fields are excluded. Add
+`--dictionary-fallback` to use those fields only when the entry has no dedicated
+thesaurus section. Entries without explicit lists are skipped and counted in the
+manifest. Redirects are not followed automatically, including inflected words.
+
+The original local-file extraction was checked: 120,980 MDX records scanned, 22,249
+entries exported, 39,638 sense groups, and 419,763 direct synonym pairs for 22,175
+headwords. Fourteen dedicated sections contain no word lists. The optional Lua
+table contains 20,054 alphabetic headwords. Extraction does not change source
+files or live Rime data. These are private extracts from your local dictionary; do not commit
+or redistribute them without permission.
+
+#### Choose a local candidate dictionary
+
+The two cleaned synonym tables live separately in the existing English
+dictionary directory:
+
+| Local file | Candidate source |
+| --- | --- |
+| `en_dicts/mw2015_synonyms.lua` | Merriam-Webster 2015, academic-focused profile; selected on this machine. |
+| `en_dicts/wordnet_synonyms.lua` | WordNet 3.0, formal/general-writing profile; default fallback. |
+
+Both paths are explicitly ignored by Git; neither table is committed. They
+remain Lua lookup tables for `≈` synonym candidates, not ordinary completion
+dictionaries imported by `english_booster.dict.yaml`. Raw exports and review
+audits stay under `~/running/rime/`.
+
+Choose the source in the local, Git-ignored `english_booster.custom.yaml`.
+Merge into its existing `patch:` block rather than replacing other settings:
+
+```yaml
+patch:
+  "synonyms/data_file": en_dicts/mw2015_synonyms.lua
+```
+
+To select WordNet explicitly, use `en_dicts/wordnet_synonyms.lua` instead, or
+remove the patch line (or set it to `""`) to use the schema's default fallback.
+Relative paths resolve from Rime's user directory, independently of the working
+directory; absolute paths to external exports also remain supported.
+
+Redeploy Rime after switching sources or updating a loaded table. If the selected
+table cannot be read or is invalid, Rime logs a generic warning and tries
+`synonyms/fallback_file`, which defaults to `en_dicts/wordnet_synonyms.lua`.
+If both are missing, only synonym suggestions are disabled. The sources are
+alternatives, not merged lists; keep their files separate. A fresh installation
+must generate WordNet with the command above or install its own local export.
+Do not force-add either ignored table or the private MDX to Git.
+
+The Merriam-Webster export preserves dictionary order and combines senses and
+parts of speech; it does **not** rank alternatives by everyday frequency or your
+sentence. For example, `quick` currently offers `alacritous`, `alert`, and
+`expeditious`, while `important` offers `big`, `consequential`, and `earthshaking`.
+Those examples describe the raw export, not the academic-focused profile now
+selected on this machine. They are the first three eligible synonyms, not
+necessarily the best fit for your intended meaning. The `≈` label, literal-first
+Space/Enter behavior, three-candidate limit, and personal-dictionary policy remain
+unchanged.
+
+#### Academic-focused synonym profile
+
+[review_mw_synonyms.py](others/script/review_mw_synonyms.py) checks every raw Lua
+row and candidate, then revisits the original MDX for usage labels and intact
+single-word evidence. It generates a new private profile without overwriting the
+MDX, the raw export, or the separate WordNet table.
+
+The profile excludes candidates supported only by marked slang, informal,
+dialectal, regional, archaic, obsolete, rare, poetic/literary, humorous, offensive,
+or derogatory usages. It removes the bare-word remnants of parenthesized phrases.
+An unmarked occurrence in another sense can retain the same word. For remaining
+entries, the main English completion vocabulary is a practical common-word
+allowlist, not an academic-corpus frequency measure.
+
+A private `academic_review.json` additionally selects and orders alternatives
+for 67 existing core writing headwords. These reviewed formal terms can extend
+the allowlist: useful words such as `corroborate` should not disappear merely
+because the basic completion dictionary lacks them. Every retained choice must
+still be an original direct synonym with unmarked, intact source evidence.
+Some ambiguous entries, including `this`, `simple`, and `solution`, are withheld
+from synonym suggestions when the available alternatives are unsuitable for this
+profile; ordinary completion and typing still work.
+
+Examples of the first three suggestions:
+
+| Typed word | Academic-focused alternatives |
+| --- | --- |
+| `quick` | `rapid`, `fast`, `swift` |
+| `important` | `significant`, `substantial`, `major` |
+| `show` | `demonstrate`, `reveal`, `display` |
+| `assess` | `evaluate`, `appraise`, `rate` |
+| `happy` | `pleased`, `satisfied`, `delighted` |
+
+The checked profile retains 18,266 headwords and 172,635 pairs from 20,054 raw
+headwords and 357,317 pairs. All 184,682 removals are logged in `removed.jsonl`
+with the original Lua line, headword, candidate, and reasons. The output also
+contains the cleaned `synonyms.json`, `english_synonyms_data.lua`, copied private
+review policy, and `manifest.json` with input hashes, source provenance, counts,
+and review limitations. The directory is `0700` and files are `0600`; none belong
+in Git.
+
+To reproduce or revise the profile, edit a copy of the private review policy and
+choose a **new** output directory:
+
+```sh
+~/.virtualenvs/lsp/bin/python -B \
+  ~/.config/ibus/rime/others/script/review_mw_synonyms.py \
+  ~/running/rime/mw2015-thesaurus-20261010 \
+  --policy ~/running/rime/mw2015-academic-20261011/academic_review.json \
+  --output-dir ~/running/rime/mw2015-academic-next
+```
+
+Install the new Lua export as the ignored `en_dicts/mw2015_synonyms.lua` (back up
+the previous table first), or point the local `synonyms/data_file` patch directly
+to the new external file, then redeploy. To
+restore the unfiltered Merriam-Webster table, point it back to
+`~/running/rime/mw2015-thesaurus-20261010/english_synonyms_data.lua` using its
+absolute path; use `""` to restore the local WordNet fallback.
+
+This is an academic-oriented lexical screen, **not** manual semantic certification
+of every pair. Only the core policy entries were reviewed manually; other entries
+retain source order and may still mix meanings or parts of speech. Academic
+alternatives are not universally interchangeable, particularly technical terms
+such as statistical `significant` or `robust`; grammar and sentence context still
+need your judgment. Suggestions never replace your word automatically.
+
+Run the parser/export regressions with:
+
+```sh
+python3 -B -m unittest discover -s others/script/tests -p 'test_*.py'
+```
 
 ### Spelling suggestions
 
@@ -223,6 +501,11 @@ The feature uses these source files:
 | [en_dicts/english_inflection_words.dict.yaml](en_dicts/english_inflection_words.dict.yaml) | Additional attested spellings for ordinary completion. |
 | [lua/english_booster.lua](lua/english_booster.lua) | Natural typing, capitalization, numbered selection, and explicit word learning. |
 | [lua/english_inflections.lua](lua/english_inflections.lua) | Read-only verb lookup with safe learning through the existing English user dictionary. |
+| [lua/english_synonyms.lua](lua/english_synonyms.lua) | Exact-word offline synonym candidates, without replacement learning. |
+| `en_dicts/mw2015_synonyms.lua` | Local Merriam-Webster synonym candidate table; Git-ignored. |
+| `en_dicts/wordnet_synonyms.lua` | Local WordNet synonym candidate table; Git-ignored and reproducible with the generator. |
+| [others/script/build_english_synonyms.py](others/script/build_english_synonyms.py) | Reproducible table generator with pinned WordNet source hashes. |
+| [others/script/extract_mw_thesaurus.py](others/script/extract_mw_thesaurus.py) | Private local MDX thesaurus export, preserving senses and relation categories; no automatic Rime installation. |
 | [lua/english_fuzzy.lua](lua/english_fuzzy.lua) | Bounded one-edit spelling fallback, only when normal completion finds nothing. |
 | [lua/input_mode_cycle.lua](lua/input_mode_cycle.lua) | Shared Shift cycle, exact-command mode switching, and Emacs-prefix passthrough. |
 | `default.custom.yaml` | Adds English Booster to the schema list and disables the old binary Shift toggle. |

@@ -11,10 +11,16 @@ user.yaml
 *.custom.yaml
 !others/**/*.custom.yaml
 
+# Local synonym candidate dictionaries; keep both generated tables out of Git.
+/en_dicts/mw2015_synonyms.lua
+/en_dicts/wordnet_synonyms.lua
+
 # Keep this feature's regression tests despite a user's global tests/ ignore.
 !others/script/tests/
 !others/script/tests/test_english_inflections.py
 !others/script/tests/test_english_fuzzy.py
+!others/script/tests/test_english_synonyms.py
+!others/script/tests/test_mw_thesaurus.py
 
 custom_phrase_double.txt
 others/script/scel2txt/out/*
