@@ -6,7 +6,8 @@ Chinese Pinyin, plain English, and a dedicated English Booster mode.
 ## Features
 
 - Natural English typing: your typed word stays first, with suggestions appearing
-  after three letters. Capitalization is preserved; each candidate page has five items.
+  at four letters by default (configurable). Capitalization is preserved;
+  each candidate page has five items.
 - Word completion, including vocabulary you have explicitly saved.
 - Verb forms: `force` offers `forced`, `forcing`, and `forces`.
 - Up to three synonym suggestions, marked `≈`, for complete listed words.

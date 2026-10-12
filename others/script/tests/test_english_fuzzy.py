@@ -63,6 +63,24 @@ class EnglishFuzzyTests(unittest.TestCase):
                 end}
             end
             yield = function(candidate) output[#output + 1] = candidate end
+            function popup_env(input, minimum)
+                return {engine = {context = {input = input}, schema = {config = {
+                    get_int = function(self, path)
+                        assert(path == "completion/min_length")
+                        return minimum
+                    end}}}}
+            end
+            function popup_rows(input, minimum, sources)
+                local output = {}
+                sources = sources or {{type = "table", text = input, comment = ""}}
+                yield = function(candidate) output[#output + 1] = candidate end
+                local translation = {iter = function()
+                    local i = 0
+                    return function() i = i + 1; return sources[i] end
+                end}
+                case_filter(translation, popup_env(input, minimum))
+                return output
+            end
             function run(input, words, normal, options)
                 vocabulary, queries, output = words or {}, 0, {}
                 options = options or {}
@@ -452,22 +470,53 @@ class EnglishFuzzyTests(unittest.TestCase):
             end
         ''')
 
-    def test_candidate_popup_starts_at_three_letters(self):
+    def test_candidate_popup_defaults_to_four_letters(self):
         self.run_lua('''
             for input, expected in pairs({I = 0, a = 0, ab = 0, AB = 0, Co = 0,
-                                          go = 0, run = 1, Run = 1, RUN = 1}) do
-                local output = {}
-                local candidate = {type = "table", text = input, comment = ""}
-                yield = function(value) output[#output + 1] = value end
-                local translation = {iter = function()
-                    local pending = true
-                    return function()
-                        if pending then pending = false; return candidate end
-                    end
-                end}
-                case_filter(translation, {engine = {context = {input = input}}})
+                                          go = 0, run = 0, Run = 0, RUN = 0,
+                                          stop = 1, Stop = 1, STOP = 1}) do
+                local output = popup_rows(input)
                 assert(#output == expected, input)
-                if expected > 0 then assert(output[1] == candidate) end
+                if expected > 0 then assert(output[1].text == input) end
+            end
+        ''')
+
+    def test_candidate_popup_threshold_is_configurable(self):
+        self.run_lua('''
+            for _, example in ipairs({{"go", 3, 0}, {"run", 3, 1}, {"RUN", 3, 1},
+                                       {"force", 6, 0}, {"forces", 6, 1},
+                                       {"I", 1, 1}, {"I", 0, 1}, {"I", -4, 1},
+                                       {"computer", 100, 0}}) do
+                local input, minimum, expected = table.unpack(example)
+                assert(#popup_rows(input, minimum) == expected, input .. ":" .. minimum)
+            end
+        ''')
+
+    def test_popup_threshold_applies_to_every_english_candidate_source(self):
+        self.run_lua('''
+            Candidate = function(kind, first, last, text, comment)
+                return {type = kind, start = first, _end = last, text = text, comment = comment}
+            end
+            ShadowCandidate = function(source, kind, text, comment)
+                return Candidate(kind, source.start, source._end, text, comment)
+            end
+            for _, kind in ipairs({"completion", "inflection", "synonym", "spelling", "user_table"}) do
+                for _, input in ipairs({"run", "stop"}) do
+                    local source = Candidate(kind, 0, #input, "running", "")
+                    assert(#popup_rows(input, 5, {source}) == 0, kind)
+                    local output = popup_rows(input, #input, {source})
+                    assert(#output == 2 and output[1].text == input
+                        and output[2] == source, kind)
+                end
+            end
+        ''')
+
+    def test_popup_threshold_does_not_hide_non_alphabetic_candidates(self):
+        self.run_lua('''
+            for _, input in ipairs({",", "1", "foo-bar", "中文"}) do
+                local candidate = {type = "punct", text = input, comment = ""}
+                local output = popup_rows(input, 100, {candidate})
+                assert(#output == 1 and output[1] == candidate, input)
             end
         ''')
 
@@ -486,7 +535,7 @@ class EnglishFuzzyTests(unittest.TestCase):
                     local i = 0
                     return function() i = i + 1; return sources[i] end
                 end}
-                case_filter(translation, {engine = {context = {input = input}}})
+                case_filter(translation, popup_env(input))
                 return output
             end
             for input, correct in pairs({comupter = "computer", Comupter = "Computer",

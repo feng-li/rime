@@ -262,7 +262,7 @@ class SynonymLuaTests(unittest.TestCase):
                 return output, env
             end
             function case_rows(input, rows)
-                local env = {engine = {context = {input = input}}}
+                local env = popup_env(input)
                 local translation = {iter = function()
                     local i = 0
                     return function() i = i + 1; return rows[i] end

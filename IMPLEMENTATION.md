@@ -8,6 +8,7 @@ the repository root.
 ## Contents
 
 - [English completion and input behavior](#english-completion)
+- [Candidate popup threshold](#candidate-popup-threshold)
 - [Synonym suggestions](#synonym-suggestions)
 - [WordNet cleanup](#wordnet-formalgeneral-writing-cleanup)
 - [Merriam-Webster extraction](#extract-a-local-merriam-webster-mdx)
@@ -24,7 +25,7 @@ English Booster uses the existing [English word list](en_dicts/en.dict.yaml) and
 [extended English word list](en_dicts/en_ext.dict.yaml). Its schema and learning
 database are separate from Pinyin's.
 
-The candidate popup starts after three alphabetic letters; shorter input remains
+The candidate popup starts at four alphabetic letters by default; shorter input remains
 inline without a popup. Once shown, the unchanged typed text is the default
 candidate, followed by completion suggestions. Ordinary Space typing therefore
 does not accept a guessed word:
@@ -34,6 +35,27 @@ preserves `comput `. Use Tab or a candidate number to request a completion.
 Capitalization is preserved for literal input; title-case and uppercase prefixes
 also produce appropriately capitalized completion candidates. English Booster
 uses ASCII punctuation and shows up to five candidates per page.
+
+### Candidate popup threshold
+
+The schema option `completion/min_length` controls when the English candidate
+popup appears. Its default is `4`. To customize it, add the following entry to
+the existing `patch:` mapping in `english_booster.custom.yaml`, then redeploy:
+
+```yaml
+patch:
+  "completion/min_length": 4
+```
+
+Use `3` to restore the previous threshold, or a larger integer for a quieter
+menu. The minimum is `1`; zero and negative values are treated as `1`. A missing
+setting uses `4`. Keep other existing patch entries, such as synonym selection.
+
+This is a popup threshold, not a restriction on typing or saving words. It
+applies to completions, personal words, verb forms, synonyms, and spelling
+suggestions; their individual dictionary lookup rules are unchanged. Short input
+still commits naturally with Space or Return, and Ctrl+Enter can still save it.
+Pinyin and plain English are unaffected.
 
 ### Verb forms
 
@@ -50,8 +72,9 @@ verb base, including spelling changes and irregular verbs:
 The typed word remains first, so Space still commits `force ` rather than a
 guessed form. Use Tab or a candidate number to choose a form; longer candidate
 lists use the same five-item pages. Title-case and uppercase input work too.
-The three-letter popup threshold also applies to verb forms: short bases such
-as `go` and `be` do not open a candidate menu.
+The configured popup threshold also applies to verb forms: with the default
+of four letters, bases such as `go`, `be`, and `run` do not open a candidate menu.
+Set the threshold to `3` to show the listed forms for `run`.
 Your learned completion preferences take priority over unselected verb forms.
 Selecting a form updates the existing `english_booster.userdb/`, not a separate
 learning database.
@@ -78,8 +101,9 @@ these choices. Title-case and uppercase input produce matching capitalization.
 Your typed word remains first. Space and Enter preserve it by default; a
 candidate number selects the displayed synonym, or use Tab/navigation as with
 ordinary completions. Learned completions and verb forms rank above synonyms;
-ordinary static prefix completions rank below them. The existing three-letter
-popup threshold, five-item pages, Shift cycle, and Chinese input are unchanged.
+ordinary static prefix completions rank below them. Synonyms use the configured
+English popup threshold and the same five-item pages; the Shift cycle and
+Chinese input are unchanged.
 
 Selecting a synonym commits only its word, without the `≈` label. Synonym
 selections do not update the personal dictionary or create replacement aliases:

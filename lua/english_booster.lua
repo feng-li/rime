@@ -94,7 +94,8 @@ end
 local function case_filter(translation, env)
   local input = env.engine.context.input
   -- Keep short English input inline, without a candidate popup.
-  if #input < 3 and input:match("^[A-Za-z]+$") then return end
+  local minimum = math.max(1, env.engine.schema.config:get_int("completion/min_length") or 4)
+  if #input < minimum and input:match("^[A-Za-z]+$") then return end
   local upper = #input > 1 and input:match("^[A-Z]+$")
   local title = input:match("^[A-Z][a-z]*$")
   local literal_first = input:match("^[A-Za-z]+$")

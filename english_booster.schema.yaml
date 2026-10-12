@@ -2,7 +2,7 @@
 schema:
   schema_id: english_booster
   name: English Booster
-  version: "2026-10-11.2"
+  version: "2026-10-12.1"
   description: Natural English typing, verb forms, synonyms, spelling suggestions, and personal words.
   dependencies:
     - english_booster_inflections
@@ -51,6 +51,10 @@ emacs_keys:
 
 menu:
   page_size: 5
+
+completion:
+  # Minimum alphabetic input length before showing English candidates.
+  min_length: 4
 
 ascii_composer:
   good_old_caps_lock: true
