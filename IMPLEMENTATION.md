@@ -401,6 +401,9 @@ the first Shift disables prediction; the next Shift returns to Pinyin. These are
 still three input behaviors, with no additional schema or hidden cycle counter.
 
 Shift used with letters or application shortcuts remains a normal modifier.
+After switching modes, the processor rejects the Shift release back to the
+frontend rather than consuming it. Both the physical press and release can
+therefore pass through, avoiding a stuck Shift state in Wayland applications.
 Switching with unfinished input retains already selected text and commits the
 remaining typed characters, rather than accepting a guessed completion. Plain
 English mode has no completion popup; English Booster is the predictive mode.

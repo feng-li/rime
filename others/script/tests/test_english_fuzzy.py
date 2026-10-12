@@ -140,7 +140,7 @@ class EnglishFuzzyTests(unittest.TestCase):
                         assert(engine.schema.schema_id == "rime_ice")
                         assert(engine.applications == (schema == "english_booster" and 1 or 0))
                         mode_cycle.func(key(0xffe1), env)
-                        assert(mode_cycle.func(key(0xffe1, {release = true, shift = true}), env) == 1)
+                        assert(mode_cycle.func(key(0xffe1, {release = true, shift = true}), env) == 0)
                         assert(engine.schema.schema_id == "english_booster" and not engine.context.ascii_mode)
                     end
                 end
@@ -273,7 +273,7 @@ class EnglishFuzzyTests(unittest.TestCase):
             assert(env.engine.schema.schema_id == "english_booster")
             assert(not env.engine.context.ascii_mode, "Shift in command must not cycle")
             assert(mode_cycle.func(event(0xffe1), env) == 2)
-            assert(mode_cycle.func(event(0xffe1, {release = true, shift = true}), env) == 1)
+            assert(mode_cycle.func(event(0xffe1, {release = true, shift = true}), env) == 0)
             assert(env.engine.schema.schema_id == "english_booster"
                    and env.engine.context.ascii_mode, "Standalone Shift enters plain English")
             for _, code in ipairs({103, 0xff1b}) do
@@ -324,7 +324,7 @@ class EnglishFuzzyTests(unittest.TestCase):
                 for step = 1, 40 do
                     local code = step % 2 == 0 and 0xffe1 or 0xffe2
                     assert(mode_cycle.func(event(code), env) == 2)
-                    assert(mode_cycle.func(event(code, {release = true, shift = true}), env) == 1)
+                    assert(mode_cycle.func(event(code, {release = true, shift = true}), env) == 0)
                     local expected = states[(start + step - 1) % 4 + 1]
                     assert(env.engine.schema.schema_id == expected[1])
                     assert(env.engine.context.ascii_mode == expected[2])
@@ -343,13 +343,63 @@ class EnglishFuzzyTests(unittest.TestCase):
             for _, pair in ipairs({{"rime_ice", "nihao"}, {"english_booster", "comput"}}) do
                 local env = prefix_env(pair[1], pair[2])
                 mode_cycle.func(event(0xffe1), env)
-                assert(mode_cycle.func(event(0xffe1, {release = true, shift = true}), env) == 1)
+                assert(mode_cycle.func(event(0xffe1, {release = true, shift = true}), env) == 0)
                 assert(env.engine.context.preserved and env.engine.commits[1] == pair[2])
                 assert(env.engine.schema.schema_id == pair[1] and env.engine.context.ascii_mode)
                 mode_cycle.func(event(0xffe2), env)
-                assert(mode_cycle.func(event(0xffe2, {release = true, shift = true}), env) == 1)
+                assert(mode_cycle.func(event(0xffe2, {release = true, shift = true}), env) == 0)
                 assert(env.engine.schema.schema_id == (pair[1] == "rime_ice" and "english_booster" or "rime_ice"))
                 assert(not env.engine.context.ascii_mode and #env.engine.commits == 1)
+            end
+        ''')
+
+    def test_shift_taps_keep_frontend_press_and_release_balanced(self):
+        self.prefix_mocks()
+        self.run_lua('''
+            local states = {{"rime_ice", false}, {"rime_ice", true},
+                            {"english_booster", false}, {"english_booster", true}}
+            for _, code in ipairs({0xffe1, 0xffe2}) do
+                for _, state in ipairs(states) do
+                    local env = prefix_env(state[1], "", state[2])
+                    local frontend_shift = false
+                    local function deliver(release)
+                        local result = mode_cycle.func(event(code,
+                            {release = release, shift = release}), env)
+                        -- Accepted events are not delivered to the frontend;
+                        -- rejected/noop events can preserve the physical pair.
+                        if result ~= 1 then frontend_shift = not release end
+                        return result
+                    end
+                    for tap = 1, 40 do
+                        assert(deliver(false) == 2 and frontend_shift)
+                        assert(deliver(true) == 0, "Shift keyup must bypass downstream Rime processors")
+                        assert(not frontend_shift, "Do not leave the frontend holding Shift")
+                        assert(mode_cycle.func(event(44), env) == 2)
+                        local comma = frontend_shift and "<" or ","
+                        assert(comma == ",", "Unmodified punctuation must remain unshifted")
+                    end
+                    assert(env.engine.schema.schema_id == state[1])
+                    assert(env.engine.context.ascii_mode == state[2])
+                end
+            end
+        ''')
+
+    def test_shift_modifier_chords_still_pass_through_without_cycling(self):
+        self.prefix_mocks()
+        self.run_lua('''
+            for _, schema in ipairs({"rime_ice", "english_booster"}) do
+                for _, code in ipairs({0xffe1, 0xffe2}) do
+                    for _, chord in ipairs({{0xffe3, "ctrl"}, {0xffe9, "alt"}, {0xffeb, "super"}}) do
+                        local env = prefix_env(schema)
+                        assert(mode_cycle.func(event(code), env) == 2)
+                        assert(mode_cycle.func(event(chord[1], {shift = true}), env) == 2)
+                        local modifiers = {release = true, shift = true, [chord[2]] = true}
+                        assert(mode_cycle.func(event(code, modifiers), env) == 2)
+                        assert(env.pending_shift == nil)
+                        assert(env.engine.schema.schema_id == schema)
+                        assert(not env.engine.context.ascii_mode)
+                    end
+                end
             end
         ''')
 

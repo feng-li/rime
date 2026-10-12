@@ -171,7 +171,10 @@ function cycle.func(key, env)
     engine:apply_schema(Schema(schema_id == "english_booster" and "rime_ice" or "english_booster"))
     engine.context:set_option("ascii_mode", false)
   end
-  return 1 -- kAccepted: do not let the old two-way toggle run as well.
+  -- The press passed through, so the release must reach the frontend too.
+  -- Consuming only the release can leave Shift held in Wayland clients.
+  -- kRejected stops other Rime processors without swallowing the physical key.
+  return 0
 end
 
 return cycle
