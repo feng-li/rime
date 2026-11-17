@@ -29,9 +29,9 @@ Merriam-Webster 2015 can be selected instead.
 ## Switching modes
 
 Tap **Ctrl+Shift** together to enter English Booster from Pinyin or plain English.
-Tap it again to restore your previous mode. Ctrl+Shift with another key keeps
-its normal application behavior. The shortcut is configurable in
-[input_modes.yaml](input_modes.yaml).
+Tap it again to restore your previous mode. Either left or right Ctrl and Shift
+work. Ctrl+Shift with another key keeps its normal application behavior.
+The shortcut is configurable in [input_modes.yaml](input_modes.yaml).
 
 You can also select a schema with Ctrl + backtick, or tap Shift alone to cycle:
 
@@ -41,8 +41,9 @@ Plain English has no prediction popup. Shift used with other keys remains a modi
 
 ## Input keys
 
-| Key | Behavior while composing in English Booster |
+| Key | Behavior |
 | --- | --- |
+| Ctrl+Shift | Enter English Booster; tap again to restore the previous mode, including plain English. |
 | Space | Commit the highlighted candidate and add a space; the default keeps your typed word. |
 | Tab | Accept a suggestion without a space; from the literal row, choose the next candidate. |
 | 1–5 | Accept the corresponding candidate on the displayed page. |

@@ -1,0 +1,3 @@
+# Shared direct mode shortcut; use an empty string to disable it.
+input_modes:
+  booster_key: Control+Shift
