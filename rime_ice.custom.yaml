@@ -5,3 +5,5 @@ patch:
     __include: english_commands:/command_mode
   "emacs_keys":
     __include: emacs_keys:/emacs_keys
+  "input_modes":
+    __include: input_modes:/input_modes

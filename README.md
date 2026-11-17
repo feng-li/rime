@@ -17,6 +17,9 @@ Chinese Pinyin, plain English, and a dedicated English Booster mode.
 - Automatic plain English after listed commands such as `git`, `emacs`, or
   `latexmk`, followed by Space or Enter.
 - Emacs key passthrough for prefixes such as C-x, C-c, and Escape; C-g cancels input.
+- Multi-machine deployment with local learning databases and Nextcloud dictionary
+  snapshots, using [deploy.sh](deploy.sh). See the
+  [deployment guide](IMPLEMENTATION.md#multi-machine-deployment-and-dictionary-sync).
 - Inline typing with a candidate-only popup in supported IBus applications.
 
 These are dictionary-based suggestions, not contextual next-word prediction.
@@ -25,7 +28,12 @@ Merriam-Webster 2015 can be selected instead.
 
 ## Switching modes
 
-Select English Booster with Ctrl + backtick, or tap Shift alone to cycle:
+Tap **Ctrl+Shift** together to enter English Booster from Pinyin or plain English.
+Tap it again to restore your previous mode. Ctrl+Shift with another key keeps
+its normal application behavior. The shortcut is configurable in
+[input_modes.yaml](input_modes.yaml).
+
+You can also select a schema with Ctrl + backtick, or tap Shift alone to cycle:
 
 Pinyin → plain English → English Booster → plain English → Pinyin
 

@@ -130,9 +130,10 @@ class EnglishFuzzyTests(unittest.TestCase):
                     is_composing = function(self) return self.input ~= "" and not options.idle end,
                     get_selected_candidate = function() return {text = options.selected_text or input} end,
                     clear = function(self) self.input = "" end,
-                    set_option = function(self, name, value) self[name] = value end}
+                    set_option = function(self, name, value) self[name] = value end,
+                    set_property = function() end}
                 local engine = {context = context, commits = {}, applications = 0,
-                    schema = {schema_id = schema, config = {get_list = function(self, path)
+                    schema = {schema_id = schema, config = {get_string = function() return "" end, get_list = function(self, path)
                         if path == "emacs_keys/prefixes" then return nil end
                         assert(path == "command_mode/commands")
                         if not options.disabled then return list end
@@ -203,18 +204,21 @@ class EnglishFuzzyTests(unittest.TestCase):
                     if token:find(name .. "+", 1, true) then modifiers[flag] = true end
                 end
                 local name = token:match("([^+]+)$")
-                local code = ({Escape = 0xff1b, Return = 0xff0d, at = 64})[name]
+                local code = ({Escape = 0xff1b, Return = 0xff0d, F8 = 0xffc5, F9 = 0xffc6, at = 64})[name]
                 if not code and #name == 1 then code = string.byte(name) end
                 assert(code, "Invalid key name")
                 return event(code, modifiers)
             end
-            function prefix_env(schema, input, ascii, prefixes)
+            function prefix_env(schema, input, ascii, prefixes, shortcut)
                 prefixes = prefixes or {"Control+x r", "Control+c", "Escape Escape",
                     "Control+x a i", "Control+x 4", "Control+x Return", "Control+x at"}
                 local list = {size = #prefixes,
                     get_value_at = function(self, i) return {value = prefixes[i + 1]} end}
                 local listener
+                local properties = {}
                 local context = {input = input or "", ascii_mode = ascii or false,
+                    get_property = function(self, name) return properties[name] or "" end,
+                    set_property = function(self, name, value) properties[name] = value end,
                     get_option = function(self) return self.ascii_mode end,
                     is_composing = function(self) return self.input ~= "" end,
                     clear = function(self) self.input = ""; if listener then listener() end end,
@@ -226,6 +230,11 @@ class EnglishFuzzyTests(unittest.TestCase):
                     end}}
                 local engine = {context = context, commits = {},
                     schema = {schema_id = schema or "english_booster", config = {
+                        get_string = function(self, path)
+                            assert(path == "input_modes/booster_key")
+                            if shortcut == nil then return "Control+Shift" end
+                            return shortcut
+                        end,
                         get_list = function(self, path)
                             if path == "emacs_keys/prefixes" then return list end
                         end}}}
@@ -332,6 +341,149 @@ class EnglishFuzzyTests(unittest.TestCase):
             assert(mode_cycle.func(event(104), env) == 2)
         ''')
 
+    def test_direct_booster_shortcut_from_all_four_modes(self):
+        self.prefix_mocks()
+        self.run_lua('''
+            for _, schema in ipairs({"rime_ice", "english_booster"}) do
+                for _, ascii in ipairs({false, true}) do
+                    local env = prefix_env(schema, "draft", ascii, nil, "F8")
+                    for repeat_press = 1, 10 do
+                        assert(mode_cycle.func(event(0xffc5), env) == 1)
+                        assert(env.engine.schema.schema_id == schema)
+                    end
+                    assert(mode_cycle.func(event(0xffc5, {release = true}), env) == 1)
+                    local target = schema == "english_booster" and not ascii
+                        and "rime_ice" or "english_booster"
+                    assert(env.engine.schema.schema_id == target)
+                    assert(not env.engine.context.ascii_mode)
+                    assert(env.engine.context.preserved and env.engine.commits[1] == "draft")
+                    assert(mode_cycle.func(event(0xffc5, {release = true}), env) == 2)
+                    assert(env.engine.schema.schema_id == target)
+                    assert(mode_cycle.func(event(0xffc5), env) == 1)
+                    assert(mode_cycle.func(event(0xffc5, {release = true}), env) == 1)
+                    local previous_schema = schema == "english_booster" and not ascii
+                        and "english_booster" or schema
+                    assert(env.engine.schema.schema_id == previous_schema)
+                    assert(env.engine.context.ascii_mode == ascii)
+                end
+            end
+        ''')
+
+    def test_booster_shortcut_configuration_and_emacs_passthrough(self):
+        self.prefix_mocks()
+        self.run_lua('''
+            for _, shortcut in ipairs({"", "invalid-key", "Control+F9"}) do
+                local env = prefix_env("rime_ice", "", false, nil, shortcut)
+                assert(mode_cycle.func(event(0xffc5), env) == 2)
+                assert(mode_cycle.func(event(0xffc5, {release = true}), env) == 2)
+                assert(env.engine.schema.schema_id == "rime_ice")
+            end
+            local env = prefix_env("rime_ice", "", false, nil, "Control+F9")
+            assert(mode_cycle.func(event(0xffc6, {ctrl = true}), env) == 1)
+            assert(mode_cycle.func(event(0xffc6, {release = true}), env) == 1)
+            assert(env.engine.schema.schema_id == "english_booster")
+            for _, modifiers in ipairs({{ctrl = true}, {alt = true},
+                                         {super = true}, {shift = true}}) do
+                env = prefix_env("rime_ice")
+                assert(mode_cycle.func(event(0xffc5, modifiers), env) == 2)
+                assert(env.engine.schema.schema_id == "rime_ice")
+            end
+            env = prefix_env("other_schema")
+            assert(mode_cycle.func(event(0xffc5), env) == 2)
+            env = prefix_env("rime_ice")
+            assert(mode_cycle.func(event(120, {ctrl = true}), env) == 0)
+            assert(mode_cycle.func(event(0xffc5), env) == 0)
+            assert(mode_cycle.func(event(0xffc5, {release = true}), env) == 2)
+            assert(env.engine.schema.schema_id == "rime_ice")
+            -- Focus/reset must discard an armed shortcut.
+            env = prefix_env("rime_ice", "", false, nil, "F8")
+            assert(mode_cycle.func(event(0xffc5), env) == 1)
+            env.engine.context:clear()
+            assert(mode_cycle.func(event(0xffc5, {release = true}), env) == 2)
+            assert(env.engine.schema.schema_id == "rime_ice")
+        ''')
+
+    def test_ctrl_shift_restores_previous_mode_with_all_modifier_orders(self):
+        self.prefix_mocks()
+        self.run_lua('''
+            function chord(env, shift, ctrl, shift_first, release_shift_first)
+                local first, second = ctrl, shift
+                local held = {ctrl = true}
+                if shift_first then first, second, held = shift, ctrl, {shift = true} end
+                assert(mode_cycle.func(event(first), env) ~= 1)
+                for n = 1, 8 do
+                    assert(mode_cycle.func(event(second, held), env) == 0)
+                end
+                local up_first = release_shift_first and shift or ctrl
+                local up_second = release_shift_first and ctrl or shift
+                assert(mode_cycle.func(event(up_first,
+                    {ctrl = true, shift = true, release = true}), env) == 0)
+                assert(mode_cycle.func(event(up_second,
+                    {release = true, ctrl = up_second == ctrl, shift = up_second == shift}), env) ~= 1)
+            end
+            for _, schema in ipairs({"rime_ice", "english_booster"}) do
+                for _, ascii in ipairs({false, true}) do
+                    for _, shift in ipairs({0xffe1, 0xffe2}) do
+                        for _, ctrl in ipairs({0xffe3, 0xffe4}) do
+                            for _, shift_first in ipairs({false, true}) do
+                                for _, release_shift_first in ipairs({false, true}) do
+                                    local env = prefix_env(schema, "draft", ascii)
+                                    chord(env, shift, ctrl, shift_first, release_shift_first)
+                                    local from_booster = schema == "english_booster" and not ascii
+                                    assert(env.engine.schema.schema_id ==
+                                        (from_booster and "rime_ice" or "english_booster"))
+                                    assert(not env.engine.context.ascii_mode)
+                                    assert(env.engine.context.preserved and env.engine.commits[1] == "draft")
+                                    -- Reinitialization on schema changes must retain the return state.
+                                    local context = env.engine.context
+                                    local props = context:get_property("booster_previous_mode")
+                                    assert(from_booster or props == schema .. (ascii and ":1" or ":0"))
+                                    chord(env, shift, ctrl, not shift_first, not release_shift_first)
+                                    assert(env.engine.schema.schema_id == schema)
+                                    assert(env.engine.context.ascii_mode == ascii)
+                                    assert(#env.engine.commits == 1)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        ''')
+
+    def test_ctrl_shift_third_key_and_prefix_do_not_toggle(self):
+        self.prefix_mocks()
+        self.run_lua('''
+            for _, code in ipairs({67, 86, 0xff51, 0xffe9, 0xffeb}) do
+                for _, release_shift_first in ipairs({false, true}) do
+                    local env = prefix_env("rime_ice")
+                    assert(mode_cycle.func(event(0xffe3), env) == 2)
+                    assert(mode_cycle.func(event(0xffe2, {ctrl = true}), env) == 0)
+                    assert(mode_cycle.func(event(code, {ctrl = true, shift = true}), env) ~= 1)
+                    assert(env.pending_booster_chord == nil)
+                    local first = release_shift_first and 0xffe2 or 0xffe3
+                    local second = release_shift_first and 0xffe3 or 0xffe2
+                    assert(mode_cycle.func(event(first,
+                        {ctrl = true, shift = true, release = true}), env) ~= 1)
+                    assert(mode_cycle.func(event(second, {release = true}), env) ~= 1)
+                    assert(env.engine.schema.schema_id == "rime_ice")
+                    assert(not env.engine.context.ascii_mode)
+                end
+            end
+            local env = prefix_env("rime_ice")
+            assert(mode_cycle.func(event(120, {ctrl = true}), env) == 0)
+            assert(mode_cycle.func(event(0xffe3), env) == 0)
+            assert(mode_cycle.func(event(0xffe1, {ctrl = true}), env) == 0)
+            assert(not env.pending_booster_chord)
+            assert(env.engine.schema.schema_id == "rime_ice")
+            -- A focus reset cancels the modifier chord too.
+            env = prefix_env("rime_ice")
+            mode_cycle.func(event(0xffe3), env)
+            mode_cycle.func(event(0xffe1, {ctrl = true}), env)
+            env.engine.context:clear()
+            mode_cycle.func(event(0xffe1, {ctrl = true, release = true}), env)
+            assert(env.engine.schema.schema_id == "rime_ice")
+        ''')
+
     def test_four_step_shift_cycle_from_every_starting_state(self):
         self.prefix_mocks()
         self.run_lua('''
@@ -408,7 +560,7 @@ class EnglishFuzzyTests(unittest.TestCase):
             for _, schema in ipairs({"rime_ice", "english_booster"}) do
                 for _, code in ipairs({0xffe1, 0xffe2}) do
                     for _, chord in ipairs({{0xffe3, "ctrl"}, {0xffe9, "alt"}, {0xffeb, "super"}}) do
-                        local env = prefix_env(schema)
+                        local env = prefix_env(schema, "", false, nil, "")
                         assert(mode_cycle.func(event(code), env) == 2)
                         assert(mode_cycle.func(event(chord[1], {shift = true}), env) == 2)
                         local modifiers = {release = true, shift = true, [chord[2]] = true}

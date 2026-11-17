@@ -21,6 +21,7 @@ user.yaml
 !others/script/tests/test_english_fuzzy.py
 !others/script/tests/test_english_synonyms.py
 !others/script/tests/test_mw_thesaurus.py
+!others/script/tests/test_rime_deploy.py
 
 custom_phrase_double.txt
 others/script/scel2txt/out/*

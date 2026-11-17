@@ -18,6 +18,7 @@ the repository root.
 - [Personal vocabulary and imports](#personal-english-dictionary)
 - [Regenerating verb data](#regenerate-the-bundled-verb-data)
 - [Keeping learned data out of Git](#keep-configuration-separate-from-learned-data)
+- [Multi-machine deployment and dictionary sync](#multi-machine-deployment-and-dictionary-sync)
 
 ## English completion
 
@@ -413,6 +414,35 @@ type `this`, press Enter to commit it, then type `1`. Otherwise, when candidate 
 is displayed, `this` followed by `1` confirms that candidate. Ctrl, Alt, and Super
 number shortcuts are passed to the application rather than selecting candidates.
 
+### Direct English Booster shortcut
+
+Tap **Ctrl+Shift** together, using either side and either press order, to enter
+English Booster from Pinyin or either plain-English state. Tap it again to
+restore the schema and plain-English setting you came from. The previous state
+is held in the Rime context, so it survives a schema switch without changing
+another input context. Starting in Booster without a saved return state falls
+back to Pinyin. An explicit Shift-cycle or automatic command-mode change clears
+the saved shortcut state.
+
+The shared [input_modes.yaml](input_modes.yaml) configures both schemas:
+
+```yaml
+input_modes:
+  booster_key: Control+Shift
+```
+
+The modifier-only shortcut switches on the first release after both modifiers
+have been pressed. Using another key cancels it, so `Ctrl+Shift+C` and similar
+application shortcuts keep working. Both modifier presses and releases pass
+through to the frontend to avoid stuck modifiers. Holding the keys does not
+cycle modes. Emacs prefix passthrough takes priority.
+
+You can instead use a Rime key name such as `F8` or `Control+F9`, or `""` to
+disable the shortcut, then run `./deploy.sh` and redeploy Rime. Ordinary key
+shortcuts consume their press and release; modifier-only shortcuts pass them
+through. Unfinished input follows the same literal-preserving policy as Shift
+switching.
+
 ### Shift cycle (four steps)
 
 Tap either Shift key alone to cycle:
@@ -695,3 +725,117 @@ runtime. They do not open or modify personal learning databases.
 want to share. 
 
 - Keep `build/`, `sync/`, `*.userdb/`, `user.yaml`, and `installation.yaml` out of Git. They contain generated data, machine-specific state, or personal learning data.
+
+## Multi-machine deployment and dictionary sync
+
+Keep this source repository in Nextcloud, and run `deploy.sh` on each machine.
+It requires Bash and Python 3, with no extra Python packages. It copies schemas,
+common patches, dictionaries, Lua helpers, OpenCC data, and the selected frontend's
+configuration into a local Rime user directory. Local synonym tables are included
+even when Git ignores them. Editing a deployed copy does not edit the source;
+make shared configuration changes in this repository and deploy again.
+
+| Data | Location |
+| --- | --- |
+| Shared configuration and dictionary source files | This Nextcloud repository |
+| `installation.yaml`, `user.yaml`, `build/`, live `*.userdb/` databases | Each machine's local Rime user directory |
+| Native dictionary snapshots, `*.userdb.txt` | Shared `sync/`, separated by installation ID |
+| Backups of replaced configuration and migrated directory links | Local `$XDG_STATE_HOME/rime-deploy/backups/` (normally `~/.local/state/`) |
+
+The automatic frontend is IBus on Linux and Squirrel on macOS. Use
+`--frontend fcitx5` for Fcitx5. Default local user directories are
+`~/.config/ibus/rime`, `~/.local/share/fcitx5/rime`, and `~/Library/Rime`,
+respectively; the Linux paths respect the XDG directory variables.
+Keep these runtime and backup locations outside cloud-synced folders.
+
+### First deployment
+
+Preview the paths and files without changing anything:
+
+```sh
+./deploy.sh --dry-run
+```
+
+If the Rime user directory does not yet exist, deploy with:
+
+```sh
+./deploy.sh
+```
+
+For an existing symlink to the shared repository, **quit the Rime frontend
+first**, then migrate:
+
+```sh
+./deploy.sh --migrate
+```
+
+On IBus, switch to an ordinary keyboard layout and stop just the Rime engine
+before migration (switching schemas alone does not stop it):
+
+```sh
+ibus engine xkb:us::eng
+pkill -u "$(id -u)" -f '^([^ ]*/)?ibus-engine-rime([[:space:]]|$)'
+```
+
+After the engine exits, run `./deploy.sh --migrate`, then select Rime again
+with `ibus engine rime`. For Fcitx5 or Squirrel, quit that frontend before
+migration and start it again afterward. The script refuses migration while
+the selected frontend is running or a user-dictionary lock is held.
+
+Migration copies the existing Chinese and English databases and `user.yaml`
+into a staged local directory, then replaces the old directory symlink. It
+leaves the original shared databases and snapshots untouched, and keeps the
+original symlink in the private backup directory printed by the script.
+Do not keep using those legacy shared live databases on other machines: deploy
+each device to its own local runtime. Archive or remove the unused shared
+runtime files only after every device has migrated and its snapshots are verified.
+
+A new local runtime gets a hostname-based random installation ID. Migration
+from a shared directory also creates a fresh ID, because a cloud copy of
+`installation.yaml` cannot identify one particular machine. Existing local
+IDs are preserved on subsequent deployments. Never copy a local
+`installation.yaml` between machines. Rime's native backup updates migrated
+database metadata when the installation ID changes.
+
+### Dictionary synchronization
+
+The script sets an absolute `sync_dir` in the local `installation.yaml`,
+defaulting to this repository's `sync/` directory. To use another shared folder:
+
+```sh
+./deploy.sh --sync-dir "$HOME/nextcloud/RimeSync"
+```
+
+Start Rime and use its **Deploy/Reload** action to build local caches. Then:
+
+1. On machine A, choose **Synchronize user data** from the Rime menu.
+2. Wait for Nextcloud to finish uploading and downloading the snapshot files.
+3. On machine B, choose **Synchronize user data** too.
+
+Repeat when moving between machines. The native synchronizer merges learned
+Chinese vocabulary (`rime_ice`) and English Booster personal words
+(`english_booster`). `deploy.sh` sets up the configuration and sync location;
+it does **not** open, export, or merge live user databases, run the frontend's
+compiler, restart input methods, or wait for Nextcloud transfers. Native sync
+backs up some configuration files but does not install shared configuration on
+other machines; rerun `deploy.sh` there after configuration changes.
+
+### Updates, backups, and verification
+
+Ordinary `./deploy.sh` runs preserve local state and skip unchanged files.
+Replaced configuration files are backed up before atomic replacement. Local
+extra files are retained rather than pruned. The script refuses directory
+symlinks inside the runtime that could redirect writes into the shared source.
+It also serializes deployments and refuses runtime/backup paths inside the
+shared source or snapshot directory.
+
+Run the isolated regression checks with:
+
+```sh
+python3 -B others/script/tests/test_rime_deploy.py -v
+```
+
+The tests use temporary directories and synthetic databases; they do not
+change the running input method or perform a real cross-machine cloud sync.
+See the [official Rime synchronization guide](https://github.com/rime/home/wiki/UserGuide#同步用戶資料)
+for snapshot merge behavior.

@@ -43,6 +43,9 @@ engine:
     - lua_filter@*english_booster*case_filter
     - uniquifier
 
+input_modes:
+  __include: input_modes:/input_modes
+
 command_mode:
   __include: english_commands:/command_mode
 
